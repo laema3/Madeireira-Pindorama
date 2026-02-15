@@ -117,6 +117,54 @@ const App: React.FC = () => {
     }
   };
 
+  // ADMIN ACTIONS WITH LOCAL STATE FALLBACK
+  const handleDeleteProduct = async (id: string) => {
+    setProducts(prev => prev.filter(p => p.id !== id));
+    if (isConfigured) {
+      try { await supabase.from('products').delete().eq('id', id); } catch (e) { console.error(e); }
+    }
+  };
+
+  const handleUpdateProduct = async (p: Product) => {
+    setProducts(prev => prev.map(item => item.id === p.id ? p : item));
+    if (isConfigured) {
+      try { await supabase.from('products').update(p).eq('id', p.id); } catch (e) { console.error(e); }
+    }
+  };
+
+  const handleAddProduct = async (p: Product) => {
+    const newProduct = { ...p, id: Math.random().toString(36).substr(2, 9) };
+    setProducts(prev => [newProduct, ...prev]);
+    if (isConfigured) {
+      try { 
+        const { id, ...data } = p; 
+        await supabase.from('products').insert(data); 
+      } catch (e) { console.error(e); }
+    }
+  };
+
+  const handleAddCategory = async (c: { name: string }) => {
+    const newCat = { ...c, id: Math.random().toString(36).substr(2, 9) };
+    setCategories(prev => [...prev, newCat]);
+    if (isConfigured) {
+      try { await supabase.from('categories').insert(c); } catch (e) { console.error(e); }
+    }
+  };
+
+  const handleDeleteCategory = async (id: string) => {
+    setCategories(prev => prev.filter(c => c.id !== id));
+    if (isConfigured) {
+      try { await supabase.from('categories').delete().eq('id', id); } catch (e) { console.error(e); }
+    }
+  };
+
+  const handleUpdateSettings = async (s: SiteSettings) => {
+    setSettings(s);
+    if (isConfigured) {
+      try { await supabase.from('settings').upsert(s); } catch (e) { console.error(e); }
+    }
+  };
+
   if (loading) {
     return (
       <div className="h-screen w-full flex flex-col items-center justify-center bg-pindorama-green text-white">
@@ -130,20 +178,21 @@ const App: React.FC = () => {
     return (
       <AdminPanel 
         products={products}
-        onDeleteProduct={async (id) => { await supabase.from('products').delete().eq('id', id); }}
-        onUpdateProduct={async (p) => { await supabase.from('products').update(p).eq('id', p.id); }}
-        onAddProduct={async (p) => { 
-          const { id, ...data } = p; 
-          await supabase.from('products').insert(data); 
-        }}
+        onDeleteProduct={handleDeleteProduct}
+        onUpdateProduct={handleUpdateProduct}
+        onAddProduct={handleAddProduct}
         categories={categories}
-        onAddCategory={async (c) => { await supabase.from('categories').insert(c); }}
-        onDeleteCategory={async (id) => { await supabase.from('categories').delete().eq('id', id); }}
+        onAddCategory={handleAddCategory}
+        onDeleteCategory={handleDeleteCategory}
         settings={settings}
-        onUpdateSettings={async (s) => { await supabase.from('settings').upsert(s); }}
+        onUpdateSettings={handleUpdateSettings}
         onLogout={() => setIsAdmin(false)} 
         dbStatus={dbStatus}
         onSeedData={async () => {
+          if (!isConfigured) {
+            alert("Aviso: Supabase não configurado. Os dados iniciais já estão carregados no estado local.");
+            return;
+          }
           for (const p of PRODUCTS) {
             const { id, ...cleanData } = p;
             await supabase.from('products').insert(cleanData);
