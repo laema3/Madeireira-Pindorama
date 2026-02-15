@@ -1,4 +1,4 @@
-import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
+import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore, Firestore } from "firebase/firestore";
 
 const firebaseConfig = {
@@ -15,24 +15,12 @@ let db: Firestore | null = null;
 let isConfigured = false;
 
 try {
-  // Check for valid API key and prevent double initialization
-  if (firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("_DISABLED")) {
-    const app: FirebaseApp = getApps().length === 0 
-      ? initializeApp(firebaseConfig) 
-      : getApp();
-    
-    // Ensure the service is retrieved using the correct app instance
-    db = getFirestore(app);
-    isConfigured = !!db;
-    
-    if (isConfigured) {
-      console.log("🔥 Firebase e Firestore inicializados com sucesso.");
-    }
-  } else {
-    console.warn("⚠️ Firebase aguardando configuração de chave de API.");
-  }
-} catch (error) {
-  console.error("❌ Erro ao inicializar serviços do Firebase:", error);
+  const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+  db = getFirestore(app);
+  isConfigured = true;
+  console.log("🔥 Firebase inicializado.");
+} catch (error: any) {
+  console.error("❌ Erro ao conectar com Firebase:", error.message);
 }
 
 export { db, isConfigured };
