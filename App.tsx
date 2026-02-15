@@ -12,11 +12,11 @@ import { PRODUCTS, HERO_IMAGES, PARTNERS, CATEGORIES } from './constants';
 import { Product, Partner, SiteSettings, Category, Subcategory } from './types';
 import { MessageCircle, Send, X, Bot } from 'lucide-react';
 
-// Import Google GenAI SDK
+// Fix: Ensure correct import of GoogleGenAI SDK
 import { GoogleGenAI } from "@google/genai";
 
 // Firebase
-import { db } from './firebaseConfig';
+import { db, isConfigured } from './firebaseConfig';
 import { 
   collection, 
   onSnapshot, 
@@ -24,14 +24,15 @@ import {
   setDoc, 
   updateDoc, 
   deleteDoc, 
-  addDoc 
+  addDoc,
+  getDocs
 } from "firebase/firestore";
 
 const App: React.FC = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [dbStatus, setDbStatus] = useState<'online' | 'offline'>(isConfigured ? 'online' : 'offline');
   
-  // States inicializados com dados locais (Fallbacks)
   const [products, setProducts] = useState<Product[]>(PRODUCTS);
   const [banners, setBanners] = useState<string[]>(HERO_IMAGES);
   const [partners, setPartners] = useState<Partner[]>(PARTNERS);
@@ -52,7 +53,6 @@ const App: React.FC = () => {
     googleTag: ''
   });
 
-  // AI Assistant State
   const [isAIChatOpen, setIsAIChatOpen] = useState(false);
   const [aiInput, setAiInput] = useState('');
   const [aiMessages, setAiMessages] = useState<{ role: 'user' | 'model', text: string }[]>([
@@ -65,50 +65,48 @@ const App: React.FC = () => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [aiMessages, isTyping]);
 
-  // Sincronização Inteligente
   useEffect(() => {
-    // Se o banco não estiver configurado, para o carregamento e usa locais
     if (!db) {
-      console.log("Modo Offline: Usando dados de constants.ts");
+      console.warn("⚠️ Firebase não conectado. Usando dados locais.");
       setLoading(false);
+      setDbStatus('offline');
       return;
     }
 
     const unsubscribers: (() => void)[] = [];
 
     try {
-      // Listener de Produtos
       unsubscribers.push(onSnapshot(collection(db, "products"), snap => {
         const data = snap.docs.map(d => ({ ...d.data(), id: d.id } as Product));
-        if (data.length > 0) setProducts(data);
+        if (data.length > 0) {
+          setProducts(data);
+          console.log("✅ Firebase Conectado: Produtos carregados.");
+        }
         setLoading(false);
-      }, () => setLoading(false)));
+        setDbStatus('online');
+      }, (err) => {
+        console.error("❌ Erro de permissão no Firebase:", err);
+        setLoading(false);
+        setDbStatus('offline');
+      }));
 
-      // Listener de Configurações
       unsubscribers.push(onSnapshot(doc(db, "settings", "main"), d => {
         if (d.exists()) setSettings(d.data() as SiteSettings);
       }));
 
-      // Listener de Banners
-      unsubscribers.push(onSnapshot(doc(db, "site_assets", "banners"), d => {
-        if (d.exists()) setBanners(d.data().urls || HERO_IMAGES);
-      }));
-
-      // Listener de Categorias
       unsubscribers.push(onSnapshot(collection(db, "categories"), snap => {
         const data = snap.docs.map(d => ({ ...d.data(), id: d.id } as Category));
         if (data.length > 0) setCategories(data);
       }));
 
     } catch (e) {
-      console.error("Erro nos listeners do Firebase:", e);
       setLoading(false);
+      setDbStatus('offline');
     }
 
     return () => unsubscribers.forEach(unsub => unsub());
   }, []);
 
-  // Handlers Seguros (Só executam se db existir)
   const handleAddProduct = async (p: Product) => {
     if (!db) return alert("Firebase não configurado!");
     const { id, ...data } = p;
@@ -120,6 +118,30 @@ const App: React.FC = () => {
     await setDoc(doc(db, "settings", "main"), s);
   };
 
+  const handleSeedData = async () => {
+    if (!db) return alert("Conecte o Firebase primeiro!");
+    try {
+      const prodsSnap = await getDocs(collection(db, "products"));
+      if (prodsSnap.empty) {
+        for (const p of PRODUCTS) {
+          const { id, ...data } = p;
+          await addDoc(collection(db, "products"), data);
+        }
+        for (const c of CATEGORIES.filter(x => x.id !== 'all')) {
+          const { id, ...data } = c;
+          await addDoc(collection(db, "categories"), data);
+        }
+        await setDoc(doc(db, "settings", "main"), settings);
+        alert("✅ Banco de dados preenchido com sucesso!");
+      } else {
+        alert("O banco já possui dados.");
+      }
+    } catch (e: any) {
+      alert("❌ Erro ao enviar dados: " + e.message);
+    }
+  };
+
+  // Fix: Optimized AI generation logic according to Google GenAI best practices
   const handleAISend = async () => {
     if (!aiInput.trim()) return;
     const text = aiInput;
@@ -128,15 +150,24 @@ const App: React.FC = () => {
     setIsTyping(true);
 
     try {
+      // Create a fresh instance for each request to ensure current environment settings are used
       const ai = new GoogleGenAI({apiKey: process.env.API_KEY});
+      
+      // Use the gemini-3-flash-preview model as recommended for basic conversational tasks
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: [{ role: 'user', parts: [{ text: `Você é o consultor da Madeireira Pindorama. Ajude o cliente: ${text}` }] }],
-        config: { systemInstruction: "Seja técnico sobre madeiras e cordial." }
+        contents: text,
+        config: { 
+          // Use systemInstruction for defining the assistant persona instead of prepending to contents
+          systemInstruction: "Você é o consultor especializado da Madeireira Pindorama em Uberaba, MG. Sua missão é ajudar clientes com dúvidas técnicas sobre tipos de madeira (bruta, aparelhada, nobre), estruturas de telhado e acabamentos. Seja cordial, profissional e use o conhecimento de uma empresa com 45 anos de tradição." 
+        }
       });
-      setAiMessages(prev => [...prev, { role: 'model', text: response.text || "Desculpe, não consegui processar." }]);
+      
+      // Property access .text (not a method) is used to extract the response string
+      setAiMessages(prev => [...prev, { role: 'model', text: response.text || "Desculpe, não consegui processar sua dúvida agora. Poderia tentar novamente?" }]);
     } catch (e) {
-      setAiMessages(prev => [...prev, { role: 'model', text: "O assistente está descansando agora. Tente o WhatsApp!" }]);
+      console.error("GenAI Error:", e);
+      setAiMessages(prev => [...prev, { role: 'model', text: "O assistente está momentaneamente indisponível. Por favor, entre em contato via WhatsApp para um atendimento imediato!" }]);
     } finally {
       setIsTyping(false);
     }
@@ -176,6 +207,8 @@ const App: React.FC = () => {
         onUpdatePartner={() => {}}
         onDeletePartner={async (id) => db && await deleteDoc(doc(db, "partners", id))}
         onLogout={() => setIsAdmin(false)} 
+        dbStatus={dbStatus}
+        onSeedData={handleSeedData}
       />
     );
   }
@@ -192,7 +225,6 @@ const App: React.FC = () => {
       </main>
       <Footer settings={settings} />
       
-      {/* Botões Flutuantes */}
       <div className="fixed bottom-8 right-8 z-40 flex flex-col gap-4">
         <button onClick={() => setIsAIChatOpen(!isAIChatOpen)} className="bg-amber-600 text-white p-4 rounded-full shadow-2xl hover:bg-amber-700 transition-all hover:scale-110 flex items-center justify-center">
           <Bot size={32} />
@@ -202,7 +234,6 @@ const App: React.FC = () => {
         </a>
       </div>
 
-      {/* Chat AI */}
       {isAIChatOpen && (
         <div className="fixed bottom-24 right-8 z-50 w-[90vw] md:w-96 bg-white rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col animate-in slide-in-from-bottom-4 duration-300">
           <div className="bg-pindorama-green p-4 flex justify-between items-center text-white">
