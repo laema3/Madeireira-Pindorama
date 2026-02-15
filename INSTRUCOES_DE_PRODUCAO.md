@@ -1,41 +1,46 @@
 
-# Guia de Publicação - Madeireira Pindorama
+# Guia de Configuração - Madeireira Pindorama
 
-Este guia descreve como levar o projeto do ambiente de desenvolvimento para um domínio profissional.
+Siga estes passos para ativar o banco de dados e conectar ao seu site.
 
-## 1. Preparação do Repositório (GitHub)
-1. Crie uma conta em [github.com](https://github.com).
-2. Crie um novo repositório chamado `madeireira-pindorama`.
-3. Faça o commit e push do seu código.
+## 1. No Console do Firebase (Google)
+1. **Criar Projeto**: [console.firebase.google.com](https://console.firebase.google.com/) -> Adicionar Projeto.
+2. **Ativar Firestore**: Menu Lateral -> Firestore Database -> Criar banco de dados.
+   - **Localização**: `southamerica-east1` (São Paulo) ou `us-east1`.
+   - **Regras**: Iniciar em "Modo de Teste".
+3. **Obter Chaves**: 
+   - Clique na Engrenagem (Configurações do Projeto).
+   - Na aba "Geral", role até "Seus aplicativos" e clique no ícone `</>`.
+   - Copie os dados do objeto `firebaseConfig`.
 
-## 2. Configuração da Hospedagem (Firebase Hosting)
-1. Vá ao [Console do Firebase](https://console.firebase.google.com/).
-2. Ative o **Hosting** e siga o fluxo para conectar seu domínio.
+## 2. No seu Código (Editor)
+Abra o arquivo `firebaseConfig.ts` e substitua os valores:
+```typescript
+const firebaseConfig = {
+  apiKey: "SUA_CHAVE_AQUI",
+  authDomain: "seu-projeto.firebaseapp.com",
+  projectId: "seu-projeto-id",
+  // ... cole o restante aqui
+};
+```
 
-## 3. ⚠️ IMPORTANTE: Regras de Segurança (Firestore)
-Para resolver o erro `code=permission-denied`, você precisa autorizar o site a ler os dados:
+## 3. Liberar Acesso (Segurança)
+Para que o site funcione sem erros de permissão, vá na aba **"Rules"** dentro do Firestore e cole:
+```javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read: if true; // Qualquer um pode ver os produtos
+      allow write: if true; // Por enquanto, liberar escrita para você configurar o site
+    }
+  }
+}
+```
+*Nota: Após configurar o site, mude `allow write: if true` para `false` ou adicione autenticação.*
 
-1. No Console do Firebase, vá em **Firestore Database** no menu lateral.
-2. Clique na aba **"Rules" (Regras)** no topo.
-3. Substitua o conteúdo pelo seguinte código para permitir leitura pública:
-   ```javascript
-   rules_version = '2';
-   service cloud.firestore {
-     match /databases/{database}/documents {
-       // Permite que qualquer pessoa leia os produtos e configurações (necessário para o site)
-       match /{document=**} {
-         allow read: if true;
-         // Protege a escrita: Apenas você poderá alterar dados pelo Painel ADM futuramente
-         // (Para teste inicial, você pode usar: allow write: if true; mas lembre-se de restringir depois)
-         allow write: if false; 
-       }
-     }
-   }
-   ```
-4. Clique em **"Publish" (Publicar)**. O erro desaparecerá em instantes.
-
-## 4. Segurança da API Key (IA Gemini)
-No ambiente de produção (GitHub), adicione sua `API_KEY` nos **Secrets** das Actions para que o consultor de IA funcione com segurança.
+## 4. IA Gemini
+O consultor de IA utiliza a chave `process.env.API_KEY`. Certifique-se de ter uma chave ativa em [ai.google.dev](https://ai.google.dev/).
 
 ---
-*Gerado por seu Engenheiro de Software Sênior.*
+*Dúvidas? Consulte seu Engenheiro de Software.*

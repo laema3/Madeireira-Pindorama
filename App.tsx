@@ -24,16 +24,14 @@ import {
   setDoc, 
   updateDoc, 
   deleteDoc, 
-  addDoc, 
-  query, 
-  orderBy 
+  addDoc 
 } from "firebase/firestore";
 
 const App: React.FC = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   
-  // States inicializados com dados locais para exibição imediata
+  // States inicializados com dados locais (Fallbacks)
   const [products, setProducts] = useState<Product[]>(PRODUCTS);
   const [banners, setBanners] = useState<string[]>(HERO_IMAGES);
   const [partners, setPartners] = useState<Partner[]>(PARTNERS);
@@ -67,77 +65,61 @@ const App: React.FC = () => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [aiMessages, isTyping]);
 
-  // Sincronização e Fallback
+  // Sincronização Inteligente
   useEffect(() => {
-    // Timeout de segurança: Se o Firebase não responder em 3s, remove o loading
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 3000);
-
-    if (!db || typeof db.type !== 'string' && Object.keys(db).length === 0) {
+    // Se o banco não estiver configurado, para o carregamento e usa locais
+    if (!db) {
+      console.log("Modo Offline: Usando dados de constants.ts");
       setLoading(false);
       return;
     }
 
-    const handleError = (err: any) => {
-      console.warn("Firebase offline ou sem permissão. Usando locais.", err.message);
-      setLoading(false);
-    };
+    const unsubscribers: (() => void)[] = [];
 
-    // Listeners Reais
     try {
-      const unsubProducts = onSnapshot(collection(db, "products"), snap => {
+      // Listener de Produtos
+      unsubscribers.push(onSnapshot(collection(db, "products"), snap => {
         const data = snap.docs.map(d => ({ ...d.data(), id: d.id } as Product));
         if (data.length > 0) setProducts(data);
         setLoading(false);
-      }, handleError);
+      }, () => setLoading(false)));
 
-      const unsubSettings = onSnapshot(doc(db, "settings", "main"), d => {
+      // Listener de Configurações
+      unsubscribers.push(onSnapshot(doc(db, "settings", "main"), d => {
         if (d.exists()) setSettings(d.data() as SiteSettings);
-        setLoading(false);
-      }, handleError);
+      }));
 
-      const unsubPartners = onSnapshot(collection(db, "partners"), snap => {
-        const data = snap.docs.map(d => ({ ...d.data(), id: d.id } as Partner));
-        if (data.length > 0) setPartners(data);
-      }, handleError);
+      // Listener de Banners
+      unsubscribers.push(onSnapshot(doc(db, "site_assets", "banners"), d => {
+        if (d.exists()) setBanners(d.data().urls || HERO_IMAGES);
+      }));
 
-      const unsubCats = onSnapshot(collection(db, "categories"), snap => {
+      // Listener de Categorias
+      unsubscribers.push(onSnapshot(collection(db, "categories"), snap => {
         const data = snap.docs.map(d => ({ ...d.data(), id: d.id } as Category));
         if (data.length > 0) setCategories(data);
-      }, handleError);
+      }));
 
-      const unsubSubs = onSnapshot(collection(db, "subcategories"), snap => {
-        const data = snap.docs.map(d => ({ ...d.data(), id: d.id } as Subcategory));
-        setSubcategories(data);
-      }, handleError);
-
-      const unsubBanners = onSnapshot(doc(db, "site_assets", "banners"), d => {
-        if (d.exists()) setBanners(d.data().urls || HERO_IMAGES);
-      }, handleError);
-
-      return () => {
-        unsubProducts(); unsubSettings(); unsubPartners(); unsubCats(); unsubSubs(); unsubBanners();
-        clearTimeout(timer);
-      };
     } catch (e) {
-      handleError(e);
-      return () => clearTimeout(timer);
+      console.error("Erro nos listeners do Firebase:", e);
+      setLoading(false);
     }
+
+    return () => unsubscribers.forEach(unsub => unsub());
   }, []);
 
-  // Handlers
+  // Handlers Seguros (Só executam se db existir)
   const handleAddProduct = async (p: Product) => {
+    if (!db) return alert("Firebase não configurado!");
     const { id, ...data } = p;
     await addDoc(collection(db, "products"), data);
   };
-  const handleUpdateProduct = async (p: Product) => {
-    const { id, ...data } = p;
-    await updateDoc(doc(db, "products", id), data as any);
+
+  const handleUpdateSettings = async (s: SiteSettings) => {
+    if (!db) return alert("Firebase não configurado!");
+    await setDoc(doc(db, "settings", "main"), s);
   };
-  const handleDeleteProduct = async (id: string) => await deleteDoc(doc(db, "products", id));
-  const handleUpdateSettings = async (s: SiteSettings) => await setDoc(doc(db, "settings", "main"), s);
-  
+
   const handleAISend = async () => {
     if (!aiInput.trim()) return;
     const text = aiInput;
@@ -149,12 +131,12 @@ const App: React.FC = () => {
       const ai = new GoogleGenAI({apiKey: process.env.API_KEY});
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: [{ role: 'user', parts: [{ text: `Você é o consultor da Madeireira Pindorama. Ajude: ${text}` }] }],
-        config: { systemInstruction: "Seja técnico e amigável." }
+        contents: [{ role: 'user', parts: [{ text: `Você é o consultor da Madeireira Pindorama. Ajude o cliente: ${text}` }] }],
+        config: { systemInstruction: "Seja técnico sobre madeiras e cordial." }
       });
-      setAiMessages(prev => [...prev, { role: 'model', text: response.text || "Pode repetir?" }]);
+      setAiMessages(prev => [...prev, { role: 'model', text: response.text || "Desculpe, não consegui processar." }]);
     } catch (e) {
-      setAiMessages(prev => [...prev, { role: 'model', text: "Estou offline no momento." }]);
+      setAiMessages(prev => [...prev, { role: 'model', text: "O assistente está descansando agora. Tente o WhatsApp!" }]);
     } finally {
       setIsTyping(false);
     }
@@ -173,26 +155,26 @@ const App: React.FC = () => {
     return (
       <AdminPanel 
         products={products}
-        onDeleteProduct={handleDeleteProduct}
-        onUpdateProduct={handleUpdateProduct}
+        onDeleteProduct={async (id) => db && await deleteDoc(doc(db, "products", id))}
+        onUpdateProduct={async (p) => db && await updateDoc(doc(db, "products", p.id), p as any)}
         onAddProduct={handleAddProduct}
         categories={categories}
-        onAddCategory={async (c) => await addDoc(collection(db, "categories"), { name: c.name })}
-        onDeleteCategory={async (id) => await deleteDoc(doc(db, "categories", id))}
+        onAddCategory={async (c) => db && await addDoc(collection(db, "categories"), { name: c.name })}
+        onDeleteCategory={async (id) => db && await deleteDoc(doc(db, "categories", id))}
         subcategories={subcategories}
-        onAddSubcategory={async (s) => await addDoc(collection(db, "subcategories"), { name: s.name, categoryId: s.categoryId })}
-        onDeleteSubcategory={async (id) => await deleteDoc(doc(db, "subcategories", id))}
+        onAddSubcategory={async (s) => db && await addDoc(collection(db, "subcategories"), s)}
+        onDeleteSubcategory={async (id) => db && await deleteDoc(doc(db, "subcategories", id))}
         messages={messages}
-        onDeleteMessage={(id) => deleteDoc(doc(db, "messages", id))}
+        onDeleteMessage={(id) => db && deleteDoc(doc(db, "messages", id))}
         settings={settings}
         onUpdateSettings={handleUpdateSettings}
         banners={banners}
-        onUpdateBanners={async (urls) => await setDoc(doc(db, "site_assets", "banners"), { urls })}
-        onDeleteBanner={(idx) => {}}
+        onUpdateBanners={async (urls) => db && await setDoc(doc(db, "site_assets", "banners"), { urls })}
+        onDeleteBanner={() => {}}
         partners={partners}
-        onAddPartner={async (p) => await addDoc(collection(db, "partners"), { name: p.name, logo: p.logo })}
-        onUpdatePartner={async (p) => {}}
-        onDeletePartner={async (id) => await deleteDoc(doc(db, "partners", id))}
+        onAddPartner={async (p) => db && await addDoc(collection(db, "partners"), p)}
+        onUpdatePartner={() => {}}
+        onDeletePartner={async (id) => db && await deleteDoc(doc(db, "partners", id))}
         onLogout={() => setIsAdmin(false)} 
       />
     );
@@ -210,6 +192,7 @@ const App: React.FC = () => {
       </main>
       <Footer settings={settings} />
       
+      {/* Botões Flutuantes */}
       <div className="fixed bottom-8 right-8 z-40 flex flex-col gap-4">
         <button onClick={() => setIsAIChatOpen(!isAIChatOpen)} className="bg-amber-600 text-white p-4 rounded-full shadow-2xl hover:bg-amber-700 transition-all hover:scale-110 flex items-center justify-center">
           <Bot size={32} />
@@ -219,6 +202,7 @@ const App: React.FC = () => {
         </a>
       </div>
 
+      {/* Chat AI */}
       {isAIChatOpen && (
         <div className="fixed bottom-24 right-8 z-50 w-[90vw] md:w-96 bg-white rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col animate-in slide-in-from-bottom-4 duration-300">
           <div className="bg-pindorama-green p-4 flex justify-between items-center text-white">
@@ -231,10 +215,11 @@ const App: React.FC = () => {
                 <div className={`max-w-[85%] p-3 rounded-2xl text-sm ${m.role === 'user' ? 'bg-amber-600 text-white' : 'bg-white text-stone-700 shadow-sm'}`}>{m.text}</div>
               </div>
             ))}
+            {isTyping && <div className="text-stone-400 text-xs italic animate-pulse">Digitando...</div>}
           </div>
           <div className="p-4 bg-white border-t border-stone-100 flex gap-2">
-            <input type="text" className="flex-1 bg-stone-100 rounded-xl px-4 py-2 text-sm outline-none" value={aiInput} onChange={(e) => setAiInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleAISend()} placeholder="Sua dúvida..." />
-            <button onClick={handleAISend} className="bg-pindorama-green text-white p-2 rounded-xl"><Send size={20} /></button>
+            <input type="text" className="flex-1 bg-stone-100 rounded-xl px-4 py-2 text-sm outline-none" value={aiInput} onChange={(e) => setAiInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleAISend()} placeholder="Dúvida sobre madeira?" />
+            <button onClick={handleAISend} className="bg-pindorama-green text-white p-2 rounded-xl hover:bg-green-900 transition-colors"><Send size={20} /></button>
           </div>
         </div>
       )}

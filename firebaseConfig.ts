@@ -1,8 +1,8 @@
 
-import { initializeApp, FirebaseApp } from "firebase/app";
-import { getFirestore, Firestore } from "firebase/firestore";
+import { initializeApp } from "firebase/app";
+import { getFirestore } from "firebase/firestore";
 
-// Substitua pelas chaves reais do seu Console do Firebase
+// PASSO IMPORTANTE: Substitua os valores abaixo pelos do seu Console Firebase
 const firebaseConfig = {
   apiKey: "API_KEY_PLACEHOLDER", 
   authDomain: "pindorama-madeiras.firebaseapp.com",
@@ -12,16 +12,18 @@ const firebaseConfig = {
   appId: "APP_ID_PLACEHOLDER"
 };
 
-let app: FirebaseApp;
-let db: Firestore;
+let db: any = null;
 
-try {
-  app = initializeApp(firebaseConfig);
-  db = getFirestore(app);
-} catch (error) {
-  console.error("Erro ao inicializar Firebase. O site funcionará em modo offline.", error);
-  // @ts-ignore - Fallback para evitar crash de renderização
-  db = {}; 
+// Verifica se as chaves foram preenchidas antes de inicializar
+if (firebaseConfig.apiKey !== "API_KEY_PLACEHOLDER") {
+  try {
+    const app = initializeApp(firebaseConfig);
+    db = getFirestore(app);
+  } catch (error) {
+    console.error("Erro ao inicializar Firebase:", error);
+  }
+} else {
+  console.warn("Firebase não configurado. O site está operando com dados locais (constants.ts).");
 }
 
 export { db };
