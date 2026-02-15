@@ -1,5 +1,4 @@
-
-import { Product, Partner, Testimonial, Category } from './types';
+import { Product, Partner, Testimonial, Category, Project } from './types';
 
 export const HERO_IMAGES = [
   "https://images.unsplash.com/photo-1516455590571-18256e5bb9ff?auto=format&fit=crop&q=80&w=1920", // Wood logs
@@ -69,11 +68,11 @@ export const PRODUCTS: Product[] = [
 ];
 
 export const PARTNERS: Partner[] = [
-  { id: '1', name: 'Montana Química', logo: 'https://picsum.photos/200/100?random=1' },
-  { id: '2', name: 'Bosch Professional', logo: 'https://picsum.photos/200/100?random=2' },
-  { id: '3', name: 'Dewalt Brasil', logo: 'https://picsum.photos/200/100?random=3' },
-  { id: '4', name: 'Sayerlack', logo: 'https://picsum.photos/200/100?random=4' },
-  { id: '5', name: 'Starrett', logo: 'https://picsum.photos/200/100?random=5' }
+  { id: '1', name: 'Montana Química', logo: 'https://cdn-icons-png.flaticon.com/512/1000/1000946.png' },
+  { id: '2', name: 'Bosch Professional', logo: 'https://cdn-icons-png.flaticon.com/512/5969/5969046.png' },
+  { id: '3', name: 'Dewalt Brasil', logo: 'https://cdn-icons-png.flaticon.com/512/5969/5969041.png' },
+  { id: '4', name: 'Sayerlack', logo: 'https://cdn-icons-png.flaticon.com/512/1000/1000951.png' },
+  { id: '5', name: 'Starrett', logo: 'https://cdn-icons-png.flaticon.com/512/1000/1000955.png' }
 ];
 
 export const TESTIMONIALS: Testimonial[] = [
@@ -95,4 +94,11 @@ export const TESTIMONIALS: Testimonial[] = [
     content: 'As melhores chapas e madeiras nobres da região. Parceria de longa data com muito sucesso.',
     rating: 4
   }
+];
+
+export const PROJECTS: Project[] = [
+  { id: '1', title: 'Área Gourmet Rústica', location: 'Condomínio Flamboyant', image: 'https://images.unsplash.com/photo-1517581177682-a085bb7ffb15?auto=format&fit=crop&q=80&w=800' },
+  { id: '2', title: 'Pergolado em Deck', location: 'Residência Privativa', image: 'https://images.unsplash.com/photo-1590059345025-50e501d5df40?auto=format&fit=crop&q=80&w=800' },
+  { id: '3', title: 'Cobertura Aparente', location: 'Sítio Uberaba', image: 'https://images.unsplash.com/photo-1565191999001-551c187427bb?auto=format&fit=crop&q=80&w=800' },
+  { id: '4', title: 'Revestimento de Fachada', location: 'Centro Comercial', image: 'https://images.unsplash.com/photo-1510627489930-0c1b0ba3ff7a?auto=format&fit=crop&q=80&w=800' }
 ];

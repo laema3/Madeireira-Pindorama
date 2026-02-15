@@ -1,4 +1,3 @@
-
 export interface Product {
   id: string;
   name: string;
@@ -31,6 +30,13 @@ export interface Subcategory {
   id: string;
   name: string;
   categoryId: string;
+}
+
+export interface Project {
+  id: string;
+  title: string;
+  location: string;
+  image: string;
 }
 
 export interface SiteSettings {

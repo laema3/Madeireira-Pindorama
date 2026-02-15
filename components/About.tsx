@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Target, Eye, ShieldCheck, Heart, Leaf, TreePine, FileCheck, CheckCircle2 } from 'lucide-react';
+import { Target, Eye, ShieldCheck, Heart, Leaf, TreePine, FileCheck, CheckCircle2, History } from 'lucide-react';
 
 const About: React.FC = () => {
   const values = [
@@ -45,92 +45,124 @@ const About: React.FC = () => {
   ];
 
   return (
-    <section id="empresa" className="py-24 bg-white">
+    <section id="empresa" className="py-32 bg-white relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col lg:flex-row gap-16 items-center mb-24">
-          <div className="lg:w-1/2">
-            <h3 className="text-amber-600 font-bold uppercase tracking-widest mb-4">Mais de 4 décadas de história</h3>
-            <h2 className="text-4xl md:text-5xl font-bold text-pindorama-green mb-8">
-              A Tradição que Constrói <br />
-              o Futuro de Uberaba.
+        <div className="flex flex-col lg:flex-row gap-20 items-center mb-32">
+          <div className="lg:w-1/2 relative">
+            <div className="absolute -top-10 -left-10 w-40 h-40 bg-amber-100 rounded-full -z-10 blur-2xl opacity-60"></div>
+            <h3 className="text-amber-600 font-bold uppercase tracking-widest mb-6 flex items-center gap-2">
+              <History size={18} />
+              Fundada em 1979
+            </h3>
+            <h2 className="text-4xl md:text-6xl font-bold text-pindorama-green mb-10 leading-tight">
+              A Tradição que <br />
+              Solidifica <span className="text-amber-600 italic font-serif">Uberaba.</span>
             </h2>
-            <p className="text-stone-600 text-lg leading-relaxed mb-6">
-              Fundada em 1979, a <strong>Madeireira Pindorama</strong> nasceu com o propósito de oferecer o que há de melhor em madeiras para a nossa cidade. Ao longo de mais de 45 anos, nos consolidamos como um pilar da construção civil local.
+            <p className="text-stone-600 text-xl leading-relaxed mb-8 font-light">
+              Nascemos no coração do Triângulo Mineiro com uma promessa: oferecer madeira que resiste ao tempo. Hoje, 45 anos depois, a <strong>Madeireira Pindorama</strong> não apenas vende matéria-prima, mas fornece a base para os sonhos de milhares de famílias.
             </p>
-            <p className="text-stone-600 text-lg leading-relaxed">
-              Passamos por gerações, adaptando processos, mas mantendo o rigor na escolha dos nossos fornecedores e na secagem da nossa madeira. Localizada no coração de Minas Gerais, nossa sede em Uberaba conta com ampla infraestrutura para atender desde pequenas reformas até grandes empreendimentos imobiliários.
+            <p className="text-stone-500 text-lg leading-relaxed">
+              Diferente de grandes varejistas, aqui o conhecimento é passado de geração em geração. Sabemos identificar a fibra certa para cada necessidade, do alicerce ao acabamento decorativo. Nossa sede em Uberaba é um ponto de encontro para quem entende que a qualidade da madeira é o que define a alma de uma construção.
             </p>
+            
+            <div className="mt-12 flex items-center gap-8">
+               <div className="text-center">
+                  <p className="text-5xl font-black text-pindorama-green">45+</p>
+                  <p className="text-xs font-bold uppercase text-stone-400 tracking-widest">Anos de Mercado</p>
+               </div>
+               <div className="w-px h-12 bg-stone-200"></div>
+               <div className="text-center">
+                  <p className="text-5xl font-black text-pindorama-green">10k+</p>
+                  <p className="text-xs font-bold uppercase text-stone-400 tracking-widest">Projetos Atendidos</p>
+               </div>
+            </div>
           </div>
-          <div className="lg:w-1/2 grid grid-cols-2 gap-4">
+          
+          <div className="lg:w-1/2 grid grid-cols-2 gap-6 relative">
+            <div className="absolute inset-0 bg-stone-50 scale-110 -z-10 rounded-[3rem] border border-stone-100 shadow-sm"></div>
             <img 
-              src="https://images.unsplash.com/photo-1541123437800-1bb1317badc2?auto=format&fit=crop&q=80&w=400" 
+              src="https://images.unsplash.com/photo-1541123437800-1bb1317badc2?auto=format&fit=crop&q=80&w=600" 
               alt="Timber selection" 
-              className="rounded-2xl shadow-lg mt-8"
+              className="rounded-[2.5rem] shadow-2xl mt-12 hover:scale-105 transition-transform duration-700"
             />
             <img 
-              src="https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&q=80&w=400" 
+              src="https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&q=80&w=600" 
               alt="Forest sustainable" 
-              className="rounded-2xl shadow-lg"
+              className="rounded-[2.5rem] shadow-2xl hover:scale-105 transition-transform duration-700"
             />
           </div>
         </div>
 
         {/* Missão, Visão e Valores */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-24">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-10 mb-32">
           {values.map((v) => (
-            <div key={v.title} className="bg-stone-50 p-8 rounded-3xl border border-stone-100 hover:shadow-xl transition-shadow group">
-              <div className="bg-white w-16 h-16 rounded-2xl flex items-center justify-center mb-6 shadow-sm group-hover:scale-110 transition-transform">
-                {v.icon}
+            <div key={v.title} className="bg-stone-50 p-10 rounded-[2.5rem] border border-stone-100 hover:shadow-2xl transition-all group hover:-translate-y-2">
+              <div className="bg-white w-20 h-20 rounded-[1.5rem] flex items-center justify-center mb-8 shadow-sm group-hover:scale-110 group-hover:bg-amber-600 group-hover:text-white transition-all text-amber-600">
+                {/* Use React.cloneElement with React.ReactElement<any> to fix type errors for className prop */}
+                {React.cloneElement(v.icon as React.ReactElement<any>, { className: 'w-10 h-10 group-hover:text-white transition-colors' })}
               </div>
               <h4 className="text-2xl font-bold text-pindorama-green mb-4">{v.title}</h4>
-              <p className="text-stone-500 leading-relaxed">{v.desc}</p>
+              <p className="text-stone-500 leading-relaxed text-sm">{v.desc}</p>
             </div>
           ))}
         </div>
 
         {/* Seção Meio Ambiente */}
-        <div className="bg-pindorama-green rounded-[3rem] p-8 md:p-16 text-white relative overflow-hidden shadow-2xl">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-green-400/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-amber-400/5 rounded-full -ml-32 -mb-32 blur-3xl"></div>
+        <div className="bg-pindorama-green rounded-[4rem] p-12 md:p-24 text-white relative overflow-hidden shadow-[0_20px_50px_rgba(13,44,37,0.4)]">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-green-400/10 rounded-full -mr-48 -mt-48 blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-amber-400/5 rounded-full -ml-48 -mb-48 blur-3xl"></div>
           
           <div className="relative z-10">
-            <div className="flex flex-col lg:flex-row items-center gap-12">
-              <div className="lg:w-1/3">
-                <div className="inline-flex items-center gap-2 bg-green-500/20 text-green-300 px-4 py-2 rounded-full mb-6 font-bold text-sm tracking-wider uppercase border border-green-500/30">
-                  <Leaf size={18} />
+            <div className="flex flex-col lg:flex-row items-center gap-20">
+              <div className="lg:w-2/5">
+                <div className="inline-flex items-center gap-2 bg-green-500/20 text-green-300 px-6 py-2 rounded-full mb-8 font-bold text-xs tracking-widest uppercase border border-green-500/30">
+                  <Leaf size={16} />
                   Compromisso Verde
                 </div>
-                <h2 className="text-3xl md:text-4xl font-bold mb-6">Tradição com Respeito à Natureza</h2>
-                <p className="text-stone-300 leading-relaxed mb-8">
-                  Na Pindorama, acreditamos que a longevidade da nossa empresa depende da preservação das nossas florestas. Por isso, operamos em total conformidade com as regras ambientais.
+                <h2 className="text-4xl md:text-5xl font-bold mb-8 italic font-serif">Natureza Respeitada, Futuro Garantido.</h2>
+                <p className="text-stone-300 text-lg leading-relaxed mb-10">
+                  A longevidade da Pindorama está ligada ao ciclo da terra. Operamos com transparência absoluta em cada m³ de madeira que entra em nosso pátio.
                 </p>
+                <div className="flex gap-4">
+                   <div className="bg-white/10 backdrop-blur-md px-6 py-4 rounded-2xl border border-white/10 text-center flex-1">
+                      <p className="text-3xl font-bold text-amber-400">100%</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-stone-400">Legalizada</p>
+                   </div>
+                   <div className="bg-white/10 backdrop-blur-md px-6 py-4 rounded-2xl border border-white/10 text-center flex-1">
+                      <p className="text-3xl font-bold text-amber-400">DOF</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-stone-400">Rastreável</p>
+                   </div>
+                </div>
               </div>
               
-              <div className="lg:w-2/3 grid md:grid-cols-3 gap-6">
+              <div className="lg:w-3/5 grid md:grid-cols-1 gap-6">
                 {ecoFeatures.map((feature, idx) => (
-                  <div key={idx} className="bg-white/5 backdrop-blur-sm border border-white/10 p-6 rounded-2xl hover:bg-white/10 transition-all">
-                    <div className="text-amber-400 mb-4 bg-amber-400/10 w-12 h-12 rounded-xl flex items-center justify-center">
+                  <div key={idx} className="bg-white/5 backdrop-blur-sm border border-white/10 p-8 rounded-3xl hover:bg-white/10 transition-all flex gap-6 items-start">
+                    <div className="text-amber-400 shrink-0 bg-amber-400/10 w-16 h-16 rounded-2xl flex items-center justify-center">
                       {feature.icon}
                     </div>
-                    <h4 className="text-xl font-bold mb-3">{feature.title}</h4>
-                    <p className="text-sm text-stone-300 leading-relaxed">
-                      {feature.desc}
-                    </p>
+                    <div>
+                      <h4 className="text-xl font-bold mb-3">{feature.title}</h4>
+                      <p className="text-stone-300 leading-relaxed text-sm">
+                        {feature.desc}
+                      </p>
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
             
-            <div className="mt-12 pt-12 border-t border-white/10 flex flex-wrap justify-center md:justify-between items-center gap-8">
-               <p className="text-stone-400 text-sm font-bold tracking-widest uppercase">
-                Em conformidade total com o Sistema Nacional de Controle da Origem dos Produtos Florestais
-               </p>
-               <div className="flex gap-4">
-                  <div className="bg-white px-4 py-2 rounded-lg grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all flex items-center h-12">
-                    <span className="text-black font-black text-xl italic">IBAMA</span>
+            <div className="mt-20 pt-12 border-t border-white/10 flex flex-wrap justify-between items-center gap-8">
+               <div className="flex flex-col">
+                  <span className="text-stone-500 text-xs font-bold uppercase tracking-[0.3em] mb-2">Selos de Qualidade e Conformidade</span>
+                  <p className="text-stone-300 text-sm max-w-md">Em total harmonia com o Sistema Nacional de Controle da Origem dos Produtos Florestais.</p>
+               </div>
+               <div className="flex gap-6">
+                  <div className="bg-white px-8 py-4 rounded-2xl grayscale opacity-80 hover:grayscale-0 hover:opacity-100 transition-all flex items-center h-16 shadow-lg">
+                    <span className="text-black font-black text-2xl italic tracking-tighter">IBAMA</span>
                   </div>
-                  <div className="bg-white px-4 py-2 rounded-lg grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all flex items-center h-12">
-                    <span className="text-black font-black text-xl italic">DOF</span>
+                  <div className="bg-white px-8 py-4 rounded-2xl grayscale opacity-80 hover:grayscale-0 hover:opacity-100 transition-all flex items-center h-16 shadow-lg">
+                    <span className="text-black font-black text-2xl italic tracking-tighter">DOF</span>
                   </div>
                </div>
             </div>
