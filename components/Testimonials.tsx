@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { TESTIMONIALS } from '../constants';
 import { Star, Quote } from 'lucide-react';
@@ -14,7 +13,7 @@ const Testimonials: React.FC = () => {
   }, []);
 
   return (
-    <section className="py-24 bg-pindorama-green overflow-hidden relative">
+    <section id="depoimentos" className="py-24 bg-pindorama-green overflow-hidden relative">
       {/* Decorative wood grain overlay could go here */}
       <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/wood-pattern.png')] opacity-10 pointer-events-none" />
 

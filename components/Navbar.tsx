@@ -1,13 +1,15 @@
-
 import React, { useState, useEffect } from 'react';
-import { Menu, X, ShieldCheck, Home, Info, Package, Handshake, Mail } from 'lucide-react';
+import { Menu, X, ShieldCheck, Home, Info, Package, Handshake, Mail, Briefcase, MessageSquare } from 'lucide-react';
+import { SiteSettings } from '../types';
 
 interface NavbarProps {
   onAdminClick: () => void;
   onHomeClick: () => void;
+  onNavLinkClick: (target: string) => void;
+  settings: SiteSettings;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ onAdminClick, onHomeClick }) => {
+const Navbar: React.FC<NavbarProps> = ({ onAdminClick, onHomeClick, onNavLinkClick, settings }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -22,10 +24,19 @@ const Navbar: React.FC<NavbarProps> = ({ onAdminClick, onHomeClick }) => {
   const navLinks = [
     { name: 'Início', href: '#inicio', icon: <Home size={18} /> },
     { name: 'Empresa', href: '#empresa', icon: <Info size={18} /> },
-    { name: 'Produtos', href: '#produtos', icon: <Package size={18} /> },
     { name: 'Parceiros', href: '#parceiros', icon: <Handshake size={18} /> },
+    { name: 'Produtos', href: '#produtos', icon: <Package size={18} /> },
+    { name: 'Projetos', href: '#projetos', icon: <Briefcase size={18} /> },
+    { name: 'Depoimentos', href: '#depoimentos', icon: <MessageSquare size={18} /> },
     { name: 'Contato', href: '#contato', icon: <Mail size={18} /> },
   ];
+
+  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    e.preventDefault();
+    const targetId = href.replace('#', '');
+    onNavLinkClick(targetId);
+    setIsOpen(false);
+  };
 
   return (
     <nav className={`fixed w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-pindorama-green shadow-lg py-3' : 'bg-transparent py-5'}`}>
@@ -35,21 +46,26 @@ const Navbar: React.FC<NavbarProps> = ({ onAdminClick, onHomeClick }) => {
             className="flex items-center cursor-pointer group"
             onClick={onHomeClick}
           >
-            <div className="bg-white p-2 rounded-lg mr-3 group-hover:bg-amber-100 transition-colors">
-              <ShieldCheck className="text-pindorama-green w-8 h-8" />
+            <div className="bg-white p-1 rounded-lg mr-3 group-hover:bg-amber-100 transition-colors overflow-hidden flex items-center justify-center min-w-[50px] min-h-[50px]">
+              {settings.logo ? (
+                <img src={settings.logo} alt={settings.siteName} className="h-10 w-auto object-contain" />
+              ) : (
+                <ShieldCheck className="text-pindorama-green w-8 h-8" />
+              )}
             </div>
             <div>
-              <span className="text-white text-2xl font-bold tracking-tight block leading-none">PINDORAMA</span>
-              <span className="text-amber-400 text-xs font-semibold tracking-[0.2em] uppercase">Madeireira • Uberaba</span>
+              <span className="text-white text-xl md:text-2xl font-bold tracking-tight block leading-none">PINDORAMA</span>
+              <span className="text-amber-400 text-[10px] font-semibold tracking-[0.2em] uppercase">Madeireira • Uberaba</span>
             </div>
           </div>
 
-          <div className="hidden md:flex items-center space-x-6 lg:space-x-8">
+          <div className="hidden xl:flex items-center space-x-4 lg:space-x-6">
             {navLinks.map((link) => (
               <a
                 key={link.name}
                 href={link.href}
-                className="flex items-center gap-2 text-white/90 hover:text-amber-400 font-medium text-sm transition-colors uppercase tracking-wider group"
+                onClick={(e) => handleLinkClick(e, link.href)}
+                className="flex items-center gap-2 text-white/90 hover:text-amber-400 font-medium text-[11px] lg:text-xs transition-colors uppercase tracking-wider group"
               >
                 <span className="text-amber-500/50 group-hover:text-amber-400 transition-colors">
                   {link.icon}
@@ -59,13 +75,13 @@ const Navbar: React.FC<NavbarProps> = ({ onAdminClick, onHomeClick }) => {
             ))}
             <button
               onClick={onAdminClick}
-              className="bg-amber-600 hover:bg-amber-700 text-white px-5 py-2 rounded-full text-sm font-bold transition-transform hover:scale-105 shadow-lg"
+              className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-full text-[11px] font-bold transition-transform hover:scale-105 shadow-lg uppercase"
             >
               Painel ADM
             </button>
           </div>
 
-          <div className="md:hidden flex items-center">
+          <div className="xl:hidden flex items-center">
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="text-white hover:text-amber-400 focus:outline-none transition-colors"
@@ -78,13 +94,13 @@ const Navbar: React.FC<NavbarProps> = ({ onAdminClick, onHomeClick }) => {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="md:hidden bg-pindorama-green border-t border-white/10 px-4 pt-4 pb-6 space-y-2 shadow-2xl animate-in fade-in slide-in-from-top-4 duration-300">
+        <div className="md:hidden bg-pindorama-green border-t border-white/10 px-4 pt-4 pb-6 space-y-1 shadow-2xl animate-in fade-in slide-in-from-top-4 duration-300">
           {navLinks.map((link) => (
             <a
               key={link.name}
               href={link.href}
-              className="flex items-center gap-4 px-4 py-4 text-white hover:bg-white/10 rounded-xl text-lg font-semibold transition-all active:scale-95"
-              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-4 px-4 py-3 text-white hover:bg-white/10 rounded-xl text-base font-semibold transition-all active:scale-95"
+              onClick={(e) => handleLinkClick(e, link.href)}
             >
               <div className="text-amber-400">
                 {link.icon}

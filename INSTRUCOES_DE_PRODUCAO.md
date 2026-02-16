@@ -1,43 +1,29 @@
-# Guia de Ativação Real - Madeireira Pindorama
+# Solução de Problemas: Bucket "Nenhum"
 
-Siga este passo a passo para ativar o sistema de banco de dados e fotos.
+Se você vê a mensagem "Buckets: Nenhum", mas tem certeza que criou o bucket `images`, siga este guia definitivo:
 
-## 1. Banco de Dados (SQL)
-No **SQL Editor** do Supabase, apague tudo e execute este bloco completo para garantir que todas as colunas existem:
+## 1. Verificação de "Gêmeo Falso" (Project ID)
+O Supabase cria um ID único para cada projeto. É comum termos dois projetos (um de teste e um real) e configurarmos o errado.
 
-```sql
--- Criar tabelas básicas
-create table if not exists categories ( id uuid default gen_random_uuid() primary key, name text not null );
-create table if not exists products ( id uuid default gen_random_uuid() primary key, name text not null, description text, price text, category text, image text, created_at timestamp with time zone default now() );
-create table if not exists partners ( id uuid default gen_random_uuid() primary key, name text not null, logo text );
-create table if not exists projects ( id uuid default gen_random_uuid() primary key, title text not null, location text, image text );
-create table if not exists banners ( id uuid default gen_random_uuid() primary key, image text not null );
-create table if not exists settings ( id bigint primary key default 1, "siteName" text, whatsapp text, address text, hoursWeek text, instagram text, logo text, phone text, email text, hoursSat text, facebook text );
+1. No seu navegador, entre no Supabase.
+2. Olhe a URL na barra de endereços. Ela deve ser exatamente:
+   `https://supabase.com/dashboard/project/qdigphmrabgzlbmvqqet/...`
+3. Se o código depois de `/project/` **NÃO FOR** `qdigphmrabgzlbmvqqet`, você está no projeto errado.
+4. Se for diferente, você precisa criar o bucket `images` **dentro desse outro projeto** que você está vendo no navegador, ou atualizar as chaves no código.
 
--- Inserir configuração inicial se não existir
-insert into settings (id, "siteName", whatsapp) 
-values (1, 'PINDORAMA', '5534999999999') 
-on conflict (id) do nothing;
-```
+## 2. Teste Real (O "Tira-Teima")
+No Painel ADM do site, eu adicionei um botão chamado **"FORÇAR TESTE DE GRAVAÇÃO"**.
+- Às vezes, o Supabase esconde a lista de pastas, mas permite gravar dentro delas.
+- Clique nesse botão. Se ele disser "GRAVAÇÃO OK", o site está funcionando perfeitamente, mesmo que a lista diga "Nenhum".
 
-## 2. CONFIGURAÇÃO OBRIGATÓRIA: Storage (Fotos)
-O erro "Bucket not found" acontece porque você ainda não criou a pasta no Supabase.
+## 3. Checklist de "images" (Letras)
+- O nome deve ser `images` (plural, tudo minúsculo).
+- Se você escreveu `imagem`, `Images`, `IMAGENS` ou `images ` (com espaço no fim), **vai dar erro**.
+- Delete e recrie se tiver qualquer dúvida.
 
-1. No menu lateral do Supabase, clique em **Storage** (ícone de um balde).
-2. Clique no botão **"New Bucket"**.
-3. No campo "Name", digite exatamente: **images** (em minúsculo).
-4. **MUITO IMPORTANTE:** Ative a chave **"Public bucket"**. Se ficar privado, as fotos não aparecem no site.
-5. Clique em **Save**.
-
-## 3. Liberar Envios (Policies)
-1. Ainda no menu **Storage**, clique em **Policies**.
-2. Clique em **New Policy** no bucket `images`.
-3. Escolha **"For full customization"**.
-4. Em "Policy Name", escreva: **Acesso Total**.
-5. Em "Allowed Operations", marque **TODAS** (SELECT, INSERT, UPDATE, DELETE).
-6. Em "Target Roles", deixe `anon` e `authenticated`.
-7. No campo de texto da regra, apague o que estiver lá e escreva apenas: `true`
-8. Clique em **Review** e depois **Save**.
-
----
-**PRONTO:** Agora você pode voltar ao seu painel ADM e clicar em "Selecionar Foto". O erro de bucket terá sumido!
+## 4. A Policy "Mágica"
+Se o teste de gravação falhar, o erro é na Policy. Vá em **Storage > Policies** no bucket `images`:
+- Clique em **New Policy** -> **Full Customization**.
+- **Allowed Operations**: Marque as 4 caixas (SELECT, INSERT, UPDATE, DELETE).
+- **Target Roles**: Selecione `anon`.
+- **Expression (USING e WITH CHECK)**: Digite apenas a palavra `true` (sem aspas).
