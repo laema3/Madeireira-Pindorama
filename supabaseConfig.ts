@@ -1,9 +1,23 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Substitua por suas chaves do Supabase (obtidas em Project Settings -> API)
-const supabaseUrl = 'https://sua-url-aqui.supabase.co';
-const supabaseKey = 'sua-chave-anon-public-aqui';
+/**
+ * INSTRUÇÕES:
+ * 1. Acesse https://supabase.com
+ * 2. Vá em Settings -> API
+ * 3. Copie a "Project URL" e a "anon public" key e cole abaixo
+ */
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+// SUBSTITUA PELAS SUAS CHAVES REAIS
+const supabaseUrl: string = 'https://substitua-pela-sua-url.supabase.co'; 
+const supabaseKey: string = 'substitua-pela-sua-chave-anon';      
 
-export const isConfigured = supabaseUrl !== 'https://sua-url-aqui.supabase.co';
+// Esta lógica verifica se você alterou as strings padrão acima
+export const isConfigured = 
+  supabaseUrl !== 'https://substitua-pela-sua-url.supabase.co' && 
+  supabaseUrl.includes('.supabase.co');
+
+// Inicializa o cliente. Se não configurado, usa valores temporários para não quebrar o site.
+export const supabase = createClient(
+  isConfigured ? supabaseUrl : 'https://placeholder-url.supabase.co', 
+  isConfigured ? supabaseKey : 'placeholder-key'
+);

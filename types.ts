@@ -14,6 +14,18 @@ export interface Partner {
   logo: string;
 }
 
+export interface Brand {
+  id: string;
+  name: string;
+  logo: string;
+}
+
+export interface YouTubeVideo {
+  id: string;
+  title: string;
+  youtubeId: string;
+}
+
 export interface Testimonial {
   id: string;
   author: string;
@@ -41,6 +53,7 @@ export interface Project {
 
 export interface SiteSettings {
   siteName: string;
+  logo?: string;
   phone: string;
   whatsapp: string;
   email: string;
@@ -51,4 +64,5 @@ export interface SiteSettings {
   facebook: string;
   pixelId: string;
   googleTag: string;
+  instagramPixel?: string;
 }

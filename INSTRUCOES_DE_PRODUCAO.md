@@ -1,49 +1,36 @@
-# Guia de Configuração - Madeireira Pindorama (Supabase Edition)
+# Guia de Ativação Real - Madeireira Pindorama
 
-Siga estes passos para ativar seu banco de dados Supabase.
+Siga este passo a passo rigorosamente para ativar seu banco de dados.
 
-## 1. No Console do Supabase
-1. **Criar Projeto**: [supabase.com](https://supabase.com/) -> New Project.
-2. **Criar Tabelas (SQL Editor)**:
-   Cole e execute este código no SQL Editor para criar a estrutura:
-   ```sql
-   create table categories (
-     id uuid default gen_random_uuid() primary key,
-     name text not null
-   );
+## 1. Banco de Dados (Supabase)
+1. Crie sua conta em [supabase.com](https://supabase.com/).
+2. Crie um novo projeto (ex: "Pindorama-Site").
+3. No menu lateral, clique no ícone **SQL Editor**.
+4. Clique em **"+ New Query"**.
+5. **IMPORTANTE:** Copie apenas o código SQL abaixo. Não copie as palavras "```sql" ou as crases finais.
 
-   create table products (
-     id uuid default gen_random_uuid() primary key,
-     name text not null,
-     description text,
-     price text,
-     category text,
-     image text,
-     created_at timestamp with time zone default timezone('utc'::text, now()) not null
-   );
+### COPIE DAQUI PARA BAIXO:
+```sql
+create table categories ( id uuid default gen_random_uuid() primary key, name text not null );
+create table subcategories ( id uuid default gen_random_uuid() primary key, name text not null, "categoryId" uuid references categories(id) on delete cascade );
+create table products ( id uuid default gen_random_uuid() primary key, name text not null, description text, price text, category text, image text, created_at timestamp with time zone default now() );
+create table brands ( id uuid default gen_random_uuid() primary key, name text not null, logo text );
+create table partners ( id uuid default gen_random_uuid() primary key, name text not null, logo text );
+create table videos ( id uuid default gen_random_uuid() primary key, title text not null, "youtubeId" text not null );
+create table settings ( id bigint primary key default 1, "siteName" text, logo text, phone text, whatsapp text, email text, address text, instagram text, facebook text, "pixelId" text, "googleTag" text, "instagramPixel" text );
+insert into settings (id, "siteName", whatsapp) values (1, 'PINDORAMA', '5534999999999') on conflict (id) do nothing;
+```
 
-   create table settings (
-     id bigint primary key default 1,
-     siteName text,
-     phone text,
-     whatsapp text,
-     email text,
-     address text,
-     hoursWeek text,
-     hoursSat text,
-     instagram text,
-     facebook text
-   );
-   ```
-3. **Obter Chaves**: 
-   - Vá em **Project Settings** -> **API**.
-   - Copie a `Project URL` e a `anon public API key`.
+## 2. Permissões de Leitura (Público)
+Para que os visitantes vejam seus produtos sem precisar de login:
+1. Vá em **Table Editor** no menu lateral.
+2. Para cada tabela (products, categories, etc), clique em **"RLS Disabled"** no topo da tela para desativar a segurança de linha (apenas se for um site institucional simples). 
+3. *Ou*, em **Authentication -> Policies**, crie uma política de "Enable read access for all users" para cada tabela.
 
-## 2. No seu Código
-Substitua os valores no arquivo `supabaseConfig.ts`.
-
-## 3. Segurança (RLS)
-Por padrão, o Supabase bloqueia tudo. No menu **Table Editor**, você pode desativar o "RLS" (Row Level Security) para testes iniciais, ou configurar políticas de leitura pública.
+## 3. Conexão do Código
+1. Vá em **Project Settings -> API**.
+2. Copie a **URL** e a **anon public key**.
+3. Abra o arquivo `supabaseConfig.ts` e cole nos campos correspondentes.
 
 ---
-*Dúvidas? Consulte seu Engenheiro de Software.*
+**DICA:** Assim que você salvar o arquivo `supabaseConfig.ts` com as chaves certas, o seu Painel ADM no site mostrará a luz verde "Cloud Sync: On".
