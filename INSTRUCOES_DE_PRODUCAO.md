@@ -1,36 +1,43 @@
 # Guia de Ativação Real - Madeireira Pindorama
 
-Siga este passo a passo rigorosamente para ativar seu banco de dados.
+Siga este passo a passo para ativar o sistema de banco de dados e fotos.
 
-## 1. Banco de Dados (Supabase)
-1. Crie sua conta em [supabase.com](https://supabase.com/).
-2. Crie um novo projeto (ex: "Pindorama-Site").
-3. No menu lateral, clique no ícone **SQL Editor**.
-4. Clique em **"+ New Query"**.
-5. **IMPORTANTE:** Copie apenas o código SQL abaixo. Não copie as palavras "```sql" ou as crases finais.
+## 1. Banco de Dados (SQL)
+No **SQL Editor** do Supabase, apague tudo e execute este bloco completo para garantir que todas as colunas existem:
 
-### COPIE DAQUI PARA BAIXO:
 ```sql
-create table categories ( id uuid default gen_random_uuid() primary key, name text not null );
-create table subcategories ( id uuid default gen_random_uuid() primary key, name text not null, "categoryId" uuid references categories(id) on delete cascade );
-create table products ( id uuid default gen_random_uuid() primary key, name text not null, description text, price text, category text, image text, created_at timestamp with time zone default now() );
-create table brands ( id uuid default gen_random_uuid() primary key, name text not null, logo text );
-create table partners ( id uuid default gen_random_uuid() primary key, name text not null, logo text );
-create table videos ( id uuid default gen_random_uuid() primary key, title text not null, "youtubeId" text not null );
-create table settings ( id bigint primary key default 1, "siteName" text, logo text, phone text, whatsapp text, email text, address text, instagram text, facebook text, "pixelId" text, "googleTag" text, "instagramPixel" text );
-insert into settings (id, "siteName", whatsapp) values (1, 'PINDORAMA', '5534999999999') on conflict (id) do nothing;
+-- Criar tabelas básicas
+create table if not exists categories ( id uuid default gen_random_uuid() primary key, name text not null );
+create table if not exists products ( id uuid default gen_random_uuid() primary key, name text not null, description text, price text, category text, image text, created_at timestamp with time zone default now() );
+create table if not exists partners ( id uuid default gen_random_uuid() primary key, name text not null, logo text );
+create table if not exists projects ( id uuid default gen_random_uuid() primary key, title text not null, location text, image text );
+create table if not exists banners ( id uuid default gen_random_uuid() primary key, image text not null );
+create table if not exists settings ( id bigint primary key default 1, "siteName" text, whatsapp text, address text, hoursWeek text, instagram text, logo text, phone text, email text, hoursSat text, facebook text );
+
+-- Inserir configuração inicial se não existir
+insert into settings (id, "siteName", whatsapp) 
+values (1, 'PINDORAMA', '5534999999999') 
+on conflict (id) do nothing;
 ```
 
-## 2. Permissões de Leitura (Público)
-Para que os visitantes vejam seus produtos sem precisar de login:
-1. Vá em **Table Editor** no menu lateral.
-2. Para cada tabela (products, categories, etc), clique em **"RLS Disabled"** no topo da tela para desativar a segurança de linha (apenas se for um site institucional simples). 
-3. *Ou*, em **Authentication -> Policies**, crie uma política de "Enable read access for all users" para cada tabela.
+## 2. CONFIGURAÇÃO OBRIGATÓRIA: Storage (Fotos)
+O erro "Bucket not found" acontece porque você ainda não criou a pasta no Supabase.
 
-## 3. Conexão do Código
-1. Vá em **Project Settings -> API**.
-2. Copie a **URL** e a **anon public key**.
-3. Abra o arquivo `supabaseConfig.ts` e cole nos campos correspondentes.
+1. No menu lateral do Supabase, clique em **Storage** (ícone de um balde).
+2. Clique no botão **"New Bucket"**.
+3. No campo "Name", digite exatamente: **images** (em minúsculo).
+4. **MUITO IMPORTANTE:** Ative a chave **"Public bucket"**. Se ficar privado, as fotos não aparecem no site.
+5. Clique em **Save**.
+
+## 3. Liberar Envios (Policies)
+1. Ainda no menu **Storage**, clique em **Policies**.
+2. Clique em **New Policy** no bucket `images`.
+3. Escolha **"For full customization"**.
+4. Em "Policy Name", escreva: **Acesso Total**.
+5. Em "Allowed Operations", marque **TODAS** (SELECT, INSERT, UPDATE, DELETE).
+6. Em "Target Roles", deixe `anon` e `authenticated`.
+7. No campo de texto da regra, apague o que estiver lá e escreva apenas: `true`
+8. Clique em **Review** e depois **Save**.
 
 ---
-**DICA:** Assim que você salvar o arquivo `supabaseConfig.ts` com as chaves certas, o seu Painel ADM no site mostrará a luz verde "Cloud Sync: On".
+**PRONTO:** Agora você pode voltar ao seu painel ADM e clicar em "Selecionar Foto". O erro de bucket terá sumido!

@@ -1,23 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
 
-/**
- * INSTRUÇÕES:
- * 1. Acesse https://supabase.com
- * 2. Vá em Settings -> API
- * 3. Copie a "Project URL" e a "anon public" key e cole abaixo
- */
+// SUAS CHAVES REAIS (Já inseridas)
+const supabaseUrl: string = 'https://qdigphmrabgzlbmvqqet.supabase.co'; 
+const supabaseKey: string = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkaWdwaG1yYWJnemxibXZxcWV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgzNjA4NzYsImV4cCI6MjA4MzkzNjg3Nn0.NxniZBWkfxKyWhTIfZ4KVzdWzGeBVldhviEESSlibDI';      
 
-// SUBSTITUA PELAS SUAS CHAVES REAIS
-const supabaseUrl: string = 'https://substitua-pela-sua-url.supabase.co'; 
-const supabaseKey: string = 'substitua-pela-sua-chave-anon';      
-
-// Esta lógica verifica se você alterou as strings padrão acima
+// Verifica se você preencheu os dados corretamente
+// Se a URL não for a de exemplo e contiver supabase.co, consideramos configurado.
 export const isConfigured = 
-  supabaseUrl !== 'https://substitua-pela-sua-url.supabase.co' && 
-  supabaseUrl.includes('.supabase.co');
+  supabaseUrl !== 'https://SUA-URL-AQUI.supabase.co' && 
+  supabaseUrl.startsWith('https://') &&
+  supabaseUrl.includes('.supabase.co') &&
+  supabaseKey !== 'SUA-CHAVE-ANON-AQUI';
 
-// Inicializa o cliente. Se não configurado, usa valores temporários para não quebrar o site.
-export const supabase = createClient(
-  isConfigured ? supabaseUrl : 'https://placeholder-url.supabase.co', 
-  isConfigured ? supabaseKey : 'placeholder-key'
-);
+// Inicializa o cliente com suas chaves reais
+export const supabase = createClient(supabaseUrl, supabaseKey);
