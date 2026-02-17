@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
@@ -12,6 +13,7 @@ import HammerLoader from './components/HammerLoader';
 import { PRODUCTS, HERO_IMAGES, PARTNERS, CATEGORIES, PROJECTS } from './constants';
 import { Product, Partner, SiteSettings, Category, Subcategory, Brand, YouTubeVideo, Project } from './types';
 import { supabase, isConfigured } from './supabaseConfig';
+import { ShieldCheck } from 'lucide-react';
 
 const App: React.FC = () => {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -55,26 +57,37 @@ const App: React.FC = () => {
     }
 
     try {
-      const { data: settData } = await supabase.from('settings').select('*').single();
+      setLoading(true);
+      
+      // 1. Carregar Configurações (Identidade do Site)
+      const { data: settData, error: settError } = await supabase.from('settings').select('*').single();
       if (settData) setSettings(settData);
       
       setDbStatus('online');
 
-      const { data: pData } = await supabase.from('products').select('*');
-      if (pData) setProducts(pData);
+      // 2. Carregar Produtos
+      const { data: pData } = await supabase.from('products').select('*').order('created_at', { ascending: false });
+      if (pData && pData.length > 0) setProducts(pData);
+      else setProducts(PRODUCTS);
       
+      // 3. Carregar Categorias e Subcategorias
       const { data: cData } = await supabase.from('categories').select('*');
-      if (cData) setCategories(cData);
+      if (cData && cData.length > 0) setCategories(cData);
+      else setCategories(CATEGORIES.filter(c => c.id !== 'all'));
 
       const { data: subData } = await supabase.from('subcategories').select('*');
       if (subData) setSubcategories(subData);
       
+      // 4. Carregar Parceiros e Projetos
       const { data: prtData } = await supabase.from('partners').select('*');
-      if (prtData) setPartners(prtData);
+      if (prtData && prtData.length > 0) setPartners(prtData);
+      else setPartners(PARTNERS);
 
-      const { data: projData } = await supabase.from('projects').select('*');
-      if (projData) setProjects(projData);
+      const { data: projData } = await supabase.from('projects').select('*').order('created_at', { ascending: false });
+      if (projData && projData.length > 0) setProjects(projData);
+      else setProjects(PROJECTS);
 
+      // 5. Carregar Banners (Slide do Topo)
       const { data: bnrData } = await supabase.from('banners').select('*');
       if (bnrData && bnrData.length > 0) {
         setBanners(bnrData.map(b => b.image));
@@ -95,6 +108,74 @@ const App: React.FC = () => {
     fetchData();
   }, []);
 
+  // Handlers de Persistência com Alertas
+  const handleAddProduct = async (p: Product) => {
+    try {
+      const newProduct = { ...p, id: Math.random().toString(36).substr(2, 9), created_at: new Date() };
+      if (isConfigured) {
+        const { error } = await supabase.from('products').insert([newProduct]);
+        if (error) throw error;
+      }
+      setProducts(prev => [newProduct, ...prev]);
+      alert("Madeira cadastrada com sucesso!");
+    } catch (err: any) {
+      alert(`Erro ao salvar produto: ${err.message}`);
+    }
+  };
+
+  const handleUpdateProduct = async (p: Product) => {
+    try {
+      if (isConfigured) {
+        const { error } = await supabase.from('products').update(p).eq('id', p.id);
+        if (error) throw error;
+      }
+      setProducts(prev => prev.map(item => item.id === p.id ? p : item));
+      alert("Produto atualizado!");
+    } catch (err: any) {
+      alert(`Erro ao atualizar: ${err.message}`);
+    }
+  };
+
+  const handleAddCategory = async (c: { name: string }) => {
+    try {
+      const newCat = { ...c, id: Math.random().toString(36).substr(2, 9) };
+      if (isConfigured) {
+        const { error } = await supabase.from('categories').insert([newCat]);
+        if (error) throw error;
+      }
+      setCategories(prev => [...prev, newCat]);
+      alert("Categoria salva!");
+    } catch (err: any) {
+      alert(`Erro: ${err.message}`);
+    }
+  };
+
+  const handleUpdateSettings = async (s: SiteSettings) => {
+    try {
+      if (isConfigured) {
+        const { error } = await supabase.from('settings').upsert({ id: 1, ...s });
+        if (error) throw error;
+      }
+      setSettings(s);
+      alert("Identidade do site atualizada com sucesso!");
+    } catch (err: any) {
+      alert(`Erro ao salvar configurações: ${err.message}`);
+    }
+  };
+
+  const handleAddBanner = async (url: string) => {
+    try {
+      if (isConfigured) {
+        const { error } = await supabase.from('banners').insert([{ image: url }]);
+        if (error) throw error;
+      }
+      setBanners(prev => [...prev, url]);
+      alert("Banner adicionado ao slide!");
+    } catch (err: any) {
+      alert(`Erro ao salvar banner: ${err.message}`);
+    }
+  };
+
   const triggerHammerLoader = (targetId: string) => {
     setShowHammer(true);
     setTimeout(() => {
@@ -106,56 +187,19 @@ const App: React.FC = () => {
         const elementRect = element.getBoundingClientRect().top;
         const elementPosition = elementRect - bodyRect;
         const offsetPosition = elementPosition - offset;
-
-        window.scrollTo({
-          top: offsetPosition,
-          behavior: 'smooth'
-        });
+        window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
       }
-    }, 2000);
-  };
-
-  const handleAddProduct = async (p: Product) => {
-    const n = { ...p, id: Math.random().toString(36).substr(2, 9) };
-    setProducts(prev => [n, ...prev]);
-    if (dbStatus === 'online') await supabase.from('products').insert(n);
-  };
-
-  const handleUpdateProduct = async (p: Product) => {
-    setProducts(prev => prev.map(item => item.id === p.id ? p : item));
-    if (dbStatus === 'online') await supabase.from('products').update(p).eq('id', p.id);
-  };
-
-  const handleDeleteProduct = async (id: string) => {
-    setProducts(prev => prev.filter(p => p.id !== id));
-    if (dbStatus === 'online') await supabase.from('products').delete().eq('id', id);
-  };
-
-  const handleAddProject = async (p: { title: string, location: string, image: string }) => {
-    const n = { ...p, id: Math.random().toString(36).substr(2, 9) };
-    setProjects(prev => [n, ...prev]);
-    if (dbStatus === 'online') await supabase.from('projects').insert(n);
-  };
-
-  const handleDeleteProject = async (id: string) => {
-    setProjects(prev => prev.filter(p => p.id !== id));
-    if (dbStatus === 'online') await supabase.from('projects').delete().eq('id', id);
-  };
-
-  const handleAddBanner = async (imageUrl: string) => {
-    setBanners(prev => [...prev, imageUrl]);
-    if (dbStatus === 'online') await supabase.from('banners').insert({ image: imageUrl });
-  };
-
-  const handleDeleteBanner = async (imageUrl: string) => {
-    setBanners(prev => prev.filter(b => b !== imageUrl));
-    if (dbStatus === 'online') await supabase.from('banners').delete().eq('image', imageUrl);
+    }, 1500);
   };
 
   if (loading) return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-pindorama-green text-white">
-      <div className="w-16 h-16 border-4 border-amber-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-      <p className="font-bold tracking-widest animate-pulse uppercase">MADEIREIRA PINDORAMA</p>
+      <div className="relative mb-8">
+         <div className="w-24 h-24 border-8 border-amber-600/20 border-t-amber-600 rounded-full animate-spin"></div>
+         <ShieldCheck className="absolute inset-0 m-auto text-amber-500" size={32} />
+      </div>
+      <p className="font-black tracking-[0.4em] animate-pulse uppercase italic text-sm">Madeireira Pindorama</p>
+      <p className="text-stone-400 text-[10px] font-bold uppercase mt-4 tracking-widest">Uberaba - MG</p>
     </div>
   );
 
@@ -164,62 +208,61 @@ const App: React.FC = () => {
       <AdminPanel 
         {...{ products, categories, subcategories, partners, brands, videos, settings, dbStatus, projects, banners }}
         dbError={dbError}
-        onDeleteProduct={handleDeleteProduct}
+        onDeleteProduct={async (id) => {
+          if (isConfigured) await supabase.from('products').delete().eq('id', id);
+          setProducts(prev => prev.filter(p => p.id !== id));
+        }}
         onUpdateProduct={handleUpdateProduct}
         onAddProduct={handleAddProduct}
-        onAddCategory={async (c) => {
-          const n = { ...c, id: Math.random().toString(36) };
-          setCategories(prev => [...prev, n]);
-          if (dbStatus === 'online') await supabase.from('categories').insert(n);
-        }}
+        onAddCategory={handleAddCategory}
         onDeleteCategory={async (id) => {
+          if (isConfigured) await supabase.from('categories').delete().eq('id', id);
           setCategories(prev => prev.filter(c => c.id !== id));
-          if (dbStatus === 'online') await supabase.from('categories').delete().eq('id', id);
         }}
         onAddSubcategory={async (sub) => {
           const n = { ...sub, id: Math.random().toString(36) };
+          if (isConfigured) await supabase.from('subcategories').insert(n);
           setSubcategories(prev => [...prev, n]);
-          if (dbStatus === 'online') await supabase.from('subcategories').insert(n);
         }}
         onDeleteSubcategory={async (id) => {
+          if (isConfigured) await supabase.from('subcategories').delete().eq('id', id);
           setSubcategories(prev => prev.filter(s => s.id !== id));
-          if (dbStatus === 'online') await supabase.from('subcategories').delete().eq('id', id);
         }}
         onAddPartner={async (p) => {
           const n = { ...p, id: Math.random().toString(36) };
+          if (isConfigured) await supabase.from('partners').insert(n);
           setPartners(prev => [...prev, n]);
-          if (dbStatus === 'online') await supabase.from('partners').insert(n);
         }}
         onDeletePartner={async (id) => {
+          if (isConfigured) await supabase.from('partners').delete().eq('id', id);
           setPartners(prev => prev.filter(p => p.id !== id));
-          if (dbStatus === 'online') await supabase.from('partners').delete().eq('id', id);
         }}
-        onAddProject={handleAddProject}
-        onDeleteProject={handleDeleteProject}
+        onAddProject={async (p) => {
+          const n = { ...p, id: Math.random().toString(36), created_at: new Date() };
+          if (isConfigured) await supabase.from('projects').insert(n);
+          setProjects(prev => [n, ...prev]);
+        }}
+        onDeleteProject={async (id) => {
+          if (isConfigured) await supabase.from('projects').delete().eq('id', id);
+          setProjects(prev => prev.filter(p => p.id !== id));
+        }}
         onAddBanner={handleAddBanner}
-        onDeleteBanner={handleDeleteBanner}
-        onAddVideo={async (v) => {
-          const n = { ...v, id: Math.random().toString(36) };
-          setVideos(prev => [...prev, n]);
-          if (dbStatus === 'online') await supabase.from('videos').insert(n);
+        onDeleteBanner={async (url) => {
+          if (isConfigured) await supabase.from('banners').delete().eq('image', url);
+          setBanners(prev => prev.filter(b => b !== url));
         }}
-        onDeleteVideo={async (id) => {
-          setVideos(prev => prev.filter(v => v.id !== id));
-          if (dbStatus === 'online') await supabase.from('videos').delete().eq('id', id);
-        }}
-        onUpdateSettings={async (s) => {
-          setSettings(s);
-          if (dbStatus === 'online') await supabase.from('settings').upsert({ id: 1, ...s });
-        }}
+        onUpdateSettings={handleUpdateSettings}
         onLogout={() => setIsAdmin(false)} 
         onAddBrand={async () => {}}
         onDeleteBrand={async () => {}}
+        onAddVideo={async () => {}}
+        onDeleteVideo={async () => {}}
       />
     );
   }
 
   return (
-    <div className="min-h-screen bg-stone-50">
+    <div className="min-h-screen bg-stone-50 overflow-x-hidden">
       {showHammer && <HammerLoader />}
       <Navbar 
         onAdminClick={() => setIsAdmin(true)} 
