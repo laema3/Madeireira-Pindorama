@@ -96,9 +96,10 @@ export const TESTIMONIALS: Testimonial[] = [
   }
 ];
 
+// Updated to use 'images' array property to match Project type definition
 export const PROJECTS: Project[] = [
-  { id: '1', title: 'Área Gourmet Rústica', location: 'Condomínio Flamboyant', image: 'https://images.unsplash.com/photo-1517581177682-a085bb7ffb15?auto=format&fit=crop&q=80&w=800' },
-  { id: '2', title: 'Pergolado em Deck', location: 'Residência Privativa', image: 'https://images.unsplash.com/photo-1590059345025-50e501d5df40?auto=format&fit=crop&q=80&w=800' },
-  { id: '3', title: 'Cobertura Aparente', location: 'Sítio Uberaba', image: 'https://images.unsplash.com/photo-1565191999001-551c187427bb?auto=format&fit=crop&q=80&w=800' },
-  { id: '4', title: 'Revestimento de Fachada', location: 'Centro Comercial', image: 'https://images.unsplash.com/photo-1510627489930-0c1b0ba3ff7a?auto=format&fit=crop&q=80&w=800' }
+  { id: '1', title: 'Área Gourmet Rústica', location: 'Condomínio Flamboyant', images: ['https://images.unsplash.com/photo-1517581177682-a085bb7ffb15?auto=format&fit=crop&q=80&w=800'] },
+  { id: '2', title: 'Pergolado em Deck', location: 'Residência Privativa', images: ['https://images.unsplash.com/photo-1590059345025-50e501d5df40?auto=format&fit=crop&q=80&w=800'] },
+  { id: '3', title: 'Cobertura Aparente', location: 'Sítio Uberaba', images: ['https://images.unsplash.com/photo-1565191999001-551c187427bb?auto=format&fit=crop&q=80&w=800'] },
+  { id: '4', title: 'Revestimento de Fachada', location: 'Centro Comercial', images: ['https://images.unsplash.com/photo-1510627489930-0c1b0ba3ff7a?auto=format&fit=crop&q=80&w=800'] }
 ];

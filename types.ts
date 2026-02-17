@@ -1,3 +1,4 @@
+
 export interface Product {
   id: string;
   name: string;
@@ -9,12 +10,6 @@ export interface Product {
 }
 
 export interface Partner {
-  id: string;
-  name: string;
-  logo: string;
-}
-
-export interface Brand {
   id: string;
   name: string;
   logo: string;
@@ -48,7 +43,7 @@ export interface Project {
   id: string;
   title: string;
   location: string;
-  image: string;
+  images: string[]; // Changed from image to images array
 }
 
 export interface SiteSettings {
@@ -64,5 +59,10 @@ export interface SiteSettings {
   facebook: string;
   pixelId: string;
   googleTag: string;
-  instagramPixel?: string;
+  aboutTitle?: string;
+  aboutText?: string;
+  mission?: string;
+  vision?: string;
+  principles?: string;
+  valuesText?: string;
 }

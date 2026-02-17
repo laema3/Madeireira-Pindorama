@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { Project } from '../types';
-import { MapPin, ArrowUpRight } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 
 interface ProjectsProps {
   projects: Project[];
@@ -14,9 +15,6 @@ const Projects: React.FC<ProjectsProps> = ({ projects }) => {
           <div className="max-w-2xl">
             <h3 className="text-amber-600 font-bold uppercase tracking-widest mb-4">Portfólio</h3>
             <h2 className="text-4xl md:text-5xl font-bold text-pindorama-green">Nossa Madeira em Grandes Projetos</h2>
-            <p className="mt-6 text-stone-500 text-lg">
-              De residências de luxo a grandes obras civis, a Madeireira Pindorama é a escolha de quem busca o padrão ouro em Uberaba.
-            </p>
           </div>
         </div>
 
@@ -28,8 +26,9 @@ const Projects: React.FC<ProjectsProps> = ({ projects }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {projects.map((project) => (
               <div key={project.id} className="group relative h-[450px] rounded-[2rem] overflow-hidden cursor-pointer">
+                {/* Always show the first image as cover */}
                 <img 
-                  src={project.image} 
+                  src={project.images[0] || 'https://via.placeholder.com/800'} 
                   alt={project.title} 
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                 />
@@ -40,8 +39,9 @@ const Projects: React.FC<ProjectsProps> = ({ projects }) => {
                     <MapPin size={14} />
                     {project.location}
                   </div>
-                  <h4 className="text-2xl font-bold text-white mb-4">{project.title}</h4>
-                  <div className="h-1 w-0 group-hover:w-full bg-amber-500 transition-all duration-500"></div>
+                  <h4 className="text-2xl font-bold text-white mb-2">{project.title}</h4>
+                  <p className="text-white/60 text-[10px] font-bold uppercase tracking-widest">{project.images.length} Fotos Registradas</p>
+                  <div className="h-1 w-0 group-hover:w-full bg-amber-500 transition-all duration-500 mt-4"></div>
                 </div>
               </div>
             ))}

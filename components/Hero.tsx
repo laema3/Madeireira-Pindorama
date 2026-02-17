@@ -1,11 +1,14 @@
+
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Award } from 'lucide-react';
+import { SiteSettings } from '../types';
 
 interface HeroProps {
   images: string[];
+  settings: SiteSettings;
 }
 
-const Hero: React.FC<HeroProps> = ({ images }) => {
+const Hero: React.FC<HeroProps> = ({ images, settings }) => {
   const [current, setCurrent] = useState(0);
 
   useEffect(() => {
@@ -27,79 +30,42 @@ const Hero: React.FC<HeroProps> = ({ images }) => {
         <div
           key={img + index}
           className={`absolute inset-0 transition-opacity duration-[2000ms] ease-in-out ${index === current ? 'opacity-100 scale-105' : 'opacity-0 scale-100'}`}
-          style={{ transitionProperty: 'opacity, transform' }}
         >
           <div className="absolute inset-0 hero-overlay z-10" />
-          <img
-            src={img}
-            alt="Hero Background"
-            className="w-full h-full object-cover"
-          />
+          <img src={img} alt="Pindorama Background" className="w-full h-full object-cover" />
         </div>
       ))}
 
       <div className="relative z-20 h-full flex items-center justify-center text-center px-4">
         <div className="max-w-5xl">
-          <div className="inline-flex items-center gap-2 bg-amber-600/20 backdrop-blur-md border border-amber-500/30 text-amber-400 px-6 py-2 rounded-full mb-8 animate-fade-in">
+          <div className="inline-flex items-center gap-2 bg-amber-600/20 backdrop-blur-md border border-amber-500/30 text-amber-400 px-8 py-3 rounded-full mb-8 animate-fade-in">
             <Award className="w-5 h-5" />
-            <span className="text-sm font-bold uppercase tracking-[0.2em]">Referência em Uberaba desde 1979</span>
+            <span className="text-sm font-black uppercase tracking-[0.3em]">Qualidade Pindorama desde 1979</span>
           </div>
           
-          <h1 className="text-white text-5xl md:text-8xl font-bold mb-8 drop-shadow-2xl leading-tight">
+          <h1 className="text-white text-6xl md:text-9xl font-black mb-8 leading-tight uppercase tracking-tighter drop-shadow-2xl">
             A Nobreza da <br />
-            <span className="text-amber-500 italic font-serif">Madeira Real.</span>
+            <span className="text-amber-500">Madeira Real</span>
           </h1>
           
-          <p className="text-white/90 text-lg md:text-2xl mb-12 max-w-3xl mx-auto font-light leading-relaxed">
-            Mais de 45 anos de história fornecendo as melhores soluções em madeiras para quem valoriza durabilidade, estética e compromisso ambiental.
+          <p className="text-white/90 text-xl md:text-3xl mb-12 max-w-4xl mx-auto font-medium leading-relaxed uppercase tracking-wide">
+            Referência em Uberaba há mais de 45 anos fornecendo as melhores soluções em madeiras nobres e sustentáveis.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            <a
-              href="#produtos"
-              className="bg-amber-600 text-white px-10 py-5 rounded-full font-bold text-lg hover:bg-amber-700 transition-all shadow-[0_10px_30px_rgba(217,119,6,0.4)] hover:-translate-y-1 active:scale-95"
-            >
-              Explorar Catálogo
-            </a>
-            <a
-              href="#empresa"
-              className="bg-white/10 backdrop-blur-md border border-white/20 text-white px-10 py-5 rounded-full font-bold text-lg hover:bg-white/20 transition-all shadow-xl hover:-translate-y-1 active:scale-95"
-            >
-              Nossa História
-            </a>
+            <a href="#produtos" className="bg-amber-600 text-white px-12 py-6 rounded-2xl font-black text-lg hover:bg-amber-700 transition-all shadow-2xl uppercase tracking-widest">Ver Estoque</a>
+            <a href="#empresa" className="bg-white/10 backdrop-blur-md border border-white/20 text-white px-12 py-6 rounded-2xl font-black text-lg hover:bg-white/20 transition-all uppercase tracking-widest">Nossa Empresa</a>
           </div>
         </div>
       </div>
 
       {images.length > 1 && (
-        <>
-          <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-30 flex gap-4">
-            {images.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setCurrent(i)}
-                className={`h-1.5 rounded-full transition-all duration-500 ${i === current ? 'bg-amber-500 w-16' : 'bg-white/20 w-8 hover:bg-white/40'}`}
-              />
-            ))}
-          </div>
-
-          <button
-            onClick={prev}
-            className="absolute left-10 top-1/2 -translate-y-1/2 z-30 p-4 bg-white/5 hover:bg-amber-600 border border-white/10 backdrop-blur-md rounded-full text-white transition-all hidden md:flex items-center justify-center hover:shadow-[0_0_20px_rgba(217,119,6,0.5)]"
-          >
-            <ChevronLeft size={32} />
-          </button>
-          <button
-            onClick={next}
-            className="absolute right-10 top-1/2 -translate-y-1/2 z-30 p-4 bg-white/5 hover:bg-amber-600 border border-white/10 backdrop-blur-md rounded-full text-white transition-all hidden md:flex items-center justify-center hover:shadow-[0_0_20px_rgba(217,119,6,0.5)]"
-          >
-            <ChevronRight size={32} />
-          </button>
-        </>
+        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-30 flex gap-4">
+          {images.map((_, i) => (
+            <button key={i} onClick={() => setCurrent(i)} className={`h-2 rounded-full transition-all duration-500 ${i === current ? 'bg-amber-500 w-20' : 'bg-white/20 w-8'}`} />
+          ))}
+        </div>
       )}
-      
-      {/* Decorative wood grain edge */}
-      <div className="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-stone-50 to-transparent z-20"></div>
     </section>
   );
 };
