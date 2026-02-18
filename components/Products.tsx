@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { Product, Category, Subcategory } from '../types';
-import { ShoppingCart, Layers, PackageSearch } from 'lucide-react';
+import { ShoppingCart, Layers, PackageSearch, Tag } from 'lucide-react';
 
 interface ProductsProps {
   products: Product[];
@@ -44,7 +44,15 @@ const Products: React.FC<ProductsProps> = ({ products, categories, subcategories
             <div key={p.id} className="bg-white rounded-[3rem] overflow-hidden shadow-xl border border-stone-200 group">
               <div className="h-80 overflow-hidden relative">
                 <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                <div className="absolute top-8 left-8 bg-amber-600 text-white px-5 py-2 rounded-full font-black uppercase text-[10px]">{p.category}</div>
+                <div className="absolute top-8 left-8 flex flex-col gap-2 items-start">
+                  <div className="bg-amber-600 text-white px-5 py-2 rounded-full font-black uppercase text-[10px] shadow-lg">{p.category}</div>
+                  {p.subcategory && (
+                    <div className="bg-pindorama-green/90 text-white px-4 py-1.5 rounded-full font-bold uppercase text-[9px] shadow-md flex items-center gap-1.5">
+                      <Tag size={10} className="text-amber-400" />
+                      {p.subcategory}
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="p-10">
                 <h4 className="text-2xl font-black text-pindorama-green mb-4 uppercase">{p.name}</h4>
