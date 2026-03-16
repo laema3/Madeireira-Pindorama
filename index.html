@@ -16,7 +16,15 @@
         .text-pindorama-green { color: #0d2c25; }
         .border-pindorama-green { border-color: #0d2c25; }
         .bg-wood-grain { background-image: url('https://www.transparenttextures.com/patterns/wood-pattern.png'); }
-        .hero-overlay { background: linear-gradient(to bottom, rgba(13, 44, 37, 0.8) 0%, rgba(0, 0, 0, 0.5) 100%); }
+        
+        /* Overlay muito mais suave: sombra apenas no topo e na base para leitura do texto */
+        .hero-overlay { 
+            background: linear-gradient(to bottom, 
+                rgba(0, 0, 0, 0.4) 0%, 
+                rgba(0, 0, 0, 0) 30%, 
+                rgba(0, 0, 0, 0) 70%, 
+                rgba(0, 0, 0, 0.7) 100%); 
+        }
         
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-in { animation: fadeIn 1s ease-out forwards; }
@@ -42,21 +50,10 @@
         /* Remove italics force */
         * { font-style: normal !important; }
     </style>
-<script type="importmap">
-{
-  "imports": {
-    "react": "https://esm.sh/react@19.0.0",
-    "react-dom": "https://esm.sh/react-dom@19.0.0",
-    "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
-    "lucide-react": "https://esm.sh/lucide-react@0.475.0",
-    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.48.1",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
-    "react/": "https://esm.sh/react@^19.2.4/"
-  }
-}
-</script>
+<link rel="stylesheet" href="/index.css">
 </head>
 <body class="bg-stone-50 text-stone-900 overflow-x-hidden">
-    <div id="root"></div>
+    <div id="app"></div>
+<script type="module" src="/index.tsx"></script>
 </body>
 </html>

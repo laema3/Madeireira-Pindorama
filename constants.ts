@@ -1,12 +1,14 @@
-import { Product, Partner, Testimonial, Category, Project } from './types';
+import { Product, Partner, Testimonial, Category, Project, SiteSettings } from './types';
 
-export const HERO_IMAGES = [
+export const HERO_IMAGES: string[] = [
   "https://images.unsplash.com/photo-1516455590571-18256e5bb9ff?auto=format&fit=crop&q=80&w=1920", // Wood logs
   "https://images.unsplash.com/photo-1533090161767-e6ffed986c88?auto=format&fit=crop&q=80&w=1920", // Modern wood interior
   "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1920", // Warehouse
   "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?auto=format&fit=crop&q=80&w=1920", // Woodwork
   "https://images.unsplash.com/photo-1520004434532-668416a08753?auto=format&fit=crop&q=80&w=1920"  // Finished timber
 ];
+
+export const heroImages = HERO_IMAGES;
 
 export const CATEGORIES: Category[] = [
   { id: 'all', name: 'Todos' },
@@ -15,6 +17,8 @@ export const CATEGORIES: Category[] = [
   { id: 'decorativo', name: 'Acabamento e Decor' },
   { id: 'telhado', name: 'Estruturas e Telhados' }
 ];
+
+export const categories = CATEGORIES;
 
 export const PRODUCTS: Product[] = [
   {
@@ -67,6 +71,8 @@ export const PRODUCTS: Product[] = [
   }
 ];
 
+export const products = PRODUCTS;
+
 export const PARTNERS: Partner[] = [
   { id: '1', name: 'Montana Química', logo: 'https://cdn-icons-png.flaticon.com/512/1000/1000946.png' },
   { id: '2', name: 'Bosch Professional', logo: 'https://cdn-icons-png.flaticon.com/512/5969/5969046.png' },
@@ -74,6 +80,8 @@ export const PARTNERS: Partner[] = [
   { id: '4', name: 'Sayerlack', logo: 'https://cdn-icons-png.flaticon.com/512/1000/1000951.png' },
   { id: '5', name: 'Starrett', logo: 'https://cdn-icons-png.flaticon.com/512/1000/1000955.png' }
 ];
+
+export const partners = PARTNERS;
 
 export const TESTIMONIALS: Testimonial[] = [
   {
@@ -96,10 +104,31 @@ export const TESTIMONIALS: Testimonial[] = [
   }
 ];
 
-// Updated to use 'images' array property to match Project type definition
 export const PROJECTS: Project[] = [
   { id: '1', title: 'Área Gourmet Rústica', location: 'Condomínio Flamboyant', images: ['https://images.unsplash.com/photo-1517581177682-a085bb7ffb15?auto=format&fit=crop&q=80&w=800'] },
   { id: '2', title: 'Pergolado em Deck', location: 'Residência Privativa', images: ['https://images.unsplash.com/photo-1590059345025-50e501d5df40?auto=format&fit=crop&q=80&w=800'] },
   { id: '3', title: 'Cobertura Aparente', location: 'Sítio Uberaba', images: ['https://images.unsplash.com/photo-1565191999001-551c187427bb?auto=format&fit=crop&q=80&w=800'] },
   { id: '4', title: 'Revestimento de Fachada', location: 'Centro Comercial', images: ['https://images.unsplash.com/photo-1510627489930-0c1b0ba3ff7a?auto=format&fit=crop&q=80&w=800'] }
 ];
+
+export const projects = PROJECTS;
+
+export const siteSettings: SiteSettings = {
+  siteName: 'Madeireira Pindorama',
+  phone: '(34) 3312-0000',
+  whatsapp: '5534999990000',
+  email: 'contato@madeireirapindorama.com.br',
+  address: 'Av. Dep. José Marcus Cherém, 1234 - Uberaba, MG',
+  hoursWeek: '07:30 - 17:30',
+  hoursSat: '07:30 - 12:00',
+  instagram: 'madeireirapindorama',
+  facebook: 'madeireirapindorama',
+  pixelId: '',
+  googleTag: '',
+  aboutTitle: 'Tradição e Qualidade em Madeiras',
+  aboutText: 'Com mais de 30 anos de história em Uberaba, a Madeireira Pindorama é referência no fornecimento de madeiras brutas e aparelhadas para construção civil e marcenaria.',
+  mission: 'Fornecer as melhores soluções em madeira com sustentabilidade e excelência.',
+  vision: 'Ser a principal referência em madeiras no Triângulo Mineiro.',
+  principles: 'Qualidade, Honestidade, Sustentabilidade e Respeito ao Cliente.',
+  valuesText: 'Nossos valores são a base de tudo o que construímos.'
+};

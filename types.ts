@@ -43,7 +43,7 @@ export interface Project {
   id: string;
   title: string;
   location: string;
-  images: string[]; // Changed from image to images array
+  images: string[];
 }
 
 export interface SiteSettings {
@@ -65,4 +65,5 @@ export interface SiteSettings {
   vision?: string;
   principles?: string;
   valuesText?: string;
+  customDomain?: string;
 }

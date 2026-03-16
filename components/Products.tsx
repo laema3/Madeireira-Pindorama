@@ -35,7 +35,7 @@ const Products: React.FC<ProductsProps> = ({ products, categories, subcategories
         <div className="flex flex-wrap justify-center gap-4 mb-16">
           <button onClick={() => setActiveCategory('all')} className={`px-10 py-5 rounded-2xl text-xs font-black uppercase tracking-widest transition-all ${activeCategory === 'all' ? 'bg-pindorama-green text-white' : 'bg-white text-pindorama-green'}`}>TODOS</button>
           {categories.map(cat => (
-            <button key={cat.id} onClick={() => setActiveCategory(cat.name)} className={`px-10 py-5 rounded-2xl text-xs font-black uppercase tracking-widest transition-all ${activeCategory === cat.name ? 'bg-pindorama-green text-white' : 'bg-white text-pindorama-green'}`}>{cat.name}</button>
+            <button key={cat.id} onClick={() => setActiveCategory(cat.id)} className={`px-10 py-5 rounded-2xl text-xs font-black uppercase tracking-widest transition-all ${activeCategory === cat.id ? 'bg-pindorama-green text-white' : 'bg-white text-pindorama-green'}`}>{cat.name}</button>
           ))}
         </div>
 

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
@@ -13,6 +12,8 @@ import HammerLoader from './components/HammerLoader';
 import { PRODUCTS, HERO_IMAGES, PARTNERS, CATEGORIES, PROJECTS } from './constants';
 import { Product, Partner, SiteSettings, Category, Subcategory, Project } from './types';
 import { supabase, isConfigured } from './supabaseConfig';
+import { MessageSquare, Send, X, Bot, User } from 'lucide-react';
+import { GoogleGenAI, ThinkingLevel } from "@google/genai";
 
 const App: React.FC = () => {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -26,6 +27,63 @@ const App: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   
+  const [isAIChatOpen, setIsAIChatOpen] = useState(false);
+  const [aiMessages, setAiMessages] = useState<{ role: 'user' | 'model', text: string }[]>([
+    { role: 'model', text: 'Olá! Sou o assistente virtual da Madeireira Pindorama. Como posso ajudar você hoje?' }
+  ]);
+  const [aiInput, setAiInput] = useState('');
+  const [isAiTyping, setIsAiTyping] = useState(false);
+
+  const handleAISend = async () => {
+    if (!aiInput.trim()) return;
+
+    const userMsg = aiInput.trim();
+    setAiMessages(prev => [...prev, { role: 'user', text: userMsg }]);
+    setAiInput('');
+    setIsAiTyping(true);
+
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+      
+      const response = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: userMsg,
+        config: {
+          systemInstruction: `Você é o consultor virtual especializado da Madeireira Pindorama, a mais tradicional de Uberaba-MG.
+          Seu objetivo é ajudar clientes com dúvidas sobre madeiras (Paraju, Angelim, Cedrinho, etc), telhados, decks, pergolados e forros.
+          
+          Informações da Empresa:
+          - Nome: Madeireira Pindorama
+          - Localização: Uberaba, MG
+          - Especialidade: Madeiras brutas e aparelhadas, ferragens e telhas.
+          - Tom de voz: Profissional, prestativo e conhecedor técnico.
+          
+          Dados atuais do site:
+          - Telefone: ${settings.phone}
+          - WhatsApp: ${settings.whatsapp}
+          - Endereço: ${settings.address}
+          
+          Produtos disponíveis: ${products.map(p => p.name).join(', ')}
+          
+          Responda sempre em Português do Brasil. Seja conciso mas informativo. Se não souber algo, peça para o cliente entrar no WhatsApp.`,
+          thinkingConfig: { thinkingLevel: ThinkingLevel.LOW }
+        }
+      });
+
+      const text = response.text || "Desculpe, não consegui processar sua mensagem.";
+      setAiMessages(prev => [...prev, { role: 'model', text }]);
+    } catch (error: any) {
+      console.error("Erro na IA:", error);
+      let errorMsg = "Desculpe, tive um problema técnico. Pode tentar novamente ou nos chamar no WhatsApp?";
+      if (error.message?.includes('billing')) {
+        errorMsg = "O serviço de IA está temporariamente indisponível por questões de cota. Por favor, use o WhatsApp para falar conosco!";
+      }
+      setAiMessages(prev => [...prev, { role: 'model', text: errorMsg }]);
+    } finally {
+      setIsAiTyping(false);
+    }
+  };
+
   const [settings, setSettings] = useState<SiteSettings>({
     siteName: 'Madeireira Pindorama',
     phone: '(34) 3333-3333',
@@ -60,29 +118,41 @@ const App: React.FC = () => {
     try {
       setLoading(true);
       
-      const { data: settData } = await supabase.from('settings').select('*').single();
-      if (settData) setSettings(prev => ({ ...prev, ...settData }));
+      // Add a simple timeout for the Supabase requests
+      const timeout = (ms: number) => new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), ms));
       
-      const { data: pData } = await supabase.from('products').select('*').order('created_at', { ascending: false });
-      if (pData) setProducts(pData);
+      const fetchDataWithTimeout = async () => {
+        const { data: settData } = await supabase.from('settings').select('*').single();
+        if (settData) setSettings(prev => ({ ...prev, ...settData }));
+        
+        const { data: pData } = await supabase.from('products').select('*').order('created_at', { ascending: false });
+        if (pData) setProducts(pData);
+        
+        const { data: cData } = await supabase.from('categories').select('*').order('name');
+        if (cData) setCategories(cData);
+
+        const { data: subData } = await supabase.from('subcategories').select('*').order('name');
+        if (subData) setSubcategories(subData);
+        
+        const { data: prtData } = await supabase.from('partners').select('*');
+        if (prtData) setPartners(prtData);
+
+        const { data: projData } = await supabase.from('projects').select('*').order('created_at', { ascending: false });
+        if (projData) setProjects(projData);
+
+        const { data: bnrData } = await supabase.from('banners').select('*');
+        if (bnrData) setBanners(bnrData.map(b => b.image));
+      };
+
+      await Promise.race([fetchDataWithTimeout(), timeout(5000)]);
       
-      const { data: cData } = await supabase.from('categories').select('*').order('name');
-      if (cData) setCategories(cData);
-
-      const { data: subData } = await supabase.from('subcategories').select('*').order('name');
-      if (subData) setSubcategories(subData);
-      
-      const { data: prtData } = await supabase.from('partners').select('*');
-      if (prtData) setPartners(prtData);
-
-      const { data: projData } = await supabase.from('projects').select('*').order('created_at', { ascending: false });
-      if (projData) setProjects(projData);
-
-      const { data: bnrData } = await supabase.from('banners').select('*');
-      if (bnrData) setBanners(bnrData.map(b => b.image));
-
     } catch (err: any) {
-      console.error('Erro de carregamento:', err.message);
+      console.error('Sincronização falhou, usando dados locais:', err.message);
+      setProducts(PRODUCTS);
+      setCategories(CATEGORIES.filter(c => c.id !== 'all'));
+      setPartners(PARTNERS);
+      setProjects(PROJECTS);
+      setBanners(HERO_IMAGES);
     } finally {
       setLoading(false);
     }
@@ -93,15 +163,15 @@ const App: React.FC = () => {
   }, []);
 
   const handleUpdateSettings = async (s: SiteSettings) => {
-    if (isConfigured) {
+    try {
       const { error } = await supabase.from('settings').upsert({ id: 1, ...s });
-      if (error) {
-        alert("Erro ao salvar no banco: " + error.message);
-        return;
-      }
+      if (error) throw error;
+      setSettings(s);
+      alert("Configurações salvas com sucesso!");
+    } catch (err: any) {
+      console.error("Erro ao salvar settings:", err);
+      alert("Erro ao salvar no banco: " + err.message);
     }
-    setSettings(s);
-    alert("Configurações atualizadas com sucesso!");
   };
 
   const triggerHammerLoader = (targetId: string) => {
@@ -117,8 +187,8 @@ const App: React.FC = () => {
 
   if (loading) return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-pindorama-green text-white">
-      <div className="w-16 h-16 border-4 border-amber-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-      <p className="font-black uppercase tracking-widest">Sincronizando Dados...</p>
+      <div className="w-12 h-12 border-4 border-amber-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+      <p className="font-black uppercase tracking-widest text-[10px]">Lendo Banco de Dados...</p>
     </div>
   );
 
@@ -128,21 +198,11 @@ const App: React.FC = () => {
       
       {!isAdmin ? (
         <>
-          <Navbar 
-            onAdminClick={() => setIsAdmin(true)} 
-            onHomeClick={() => triggerHammerLoader('inicio')}
-            onNavLinkClick={(target) => triggerHammerLoader(target)}
-            settings={settings}
-          />
+          <Navbar onAdminClick={() => setIsAdmin(true)} onHomeClick={() => triggerHammerLoader('inicio')} onNavLinkClick={(t) => triggerHammerLoader(t)} settings={settings} />
           <Hero images={banners.length > 0 ? banners : HERO_IMAGES} settings={settings} />
           <About settings={settings} />
           <Partners partners={partners} />
-          <Products 
-            products={products} 
-            categories={categories} 
-            subcategories={subcategories}
-            whatsapp={settings.whatsapp} 
-          />
+          <Products products={products} categories={categories} subcategories={subcategories} whatsapp={settings.whatsapp} />
           <Projects projects={projects} />
           <Testimonials />
           <Footer settings={settings} />
@@ -151,130 +211,157 @@ const App: React.FC = () => {
         <AdminPanel 
           {...{ products, categories, subcategories, partners, settings, projects, banners }}
           onDeleteProduct={async (id) => {
-            if (isConfigured) {
-              const { error } = await supabase.from('products').delete().eq('id', id);
-              if (error) { alert("Erro ao excluir: " + error.message); return; }
-            }
-            setProducts(prev => prev.filter(p => p.id !== id));
+            const { error } = await supabase.from('products').delete().eq('id', id);
+            if (!error) setProducts(prev => prev.filter(p => p.id !== id));
+            else alert("Erro ao excluir: " + error.message);
           }}
           onUpdateProduct={async (p) => {
-            if (isConfigured) {
-              const { error } = await supabase.from('products').update(p).eq('id', p.id);
-              if (error) { alert("Erro ao atualizar: " + error.message); return; }
-            }
-            setProducts(prev => prev.map(item => item.id === p.id ? p : item));
+            const { error } = await supabase.from('products').update(p).eq('id', p.id);
+            if (!error) setProducts(prev => prev.map(item => item.id === p.id ? p : item));
+            else alert("Erro ao atualizar: " + error.message);
           }}
           onAddProduct={async (p) => {
-            const newId = Math.random().toString(36).substr(2, 9);
-            const n = { ...p, id: newId, created_at: new Date() };
-            if (isConfigured) {
-              const { error } = await supabase.from('products').insert(n);
-              if (error) { alert("Erro ao cadastrar: " + error.message); return; }
-            }
-            setProducts(prev => [n, ...prev]);
+            const n = { ...p, id: Math.random().toString(36).substr(2, 9), created_at: new Date() };
+            const { error } = await supabase.from('products').insert(n);
+            if (!error) setProducts(prev => [n, ...prev]);
+            else alert("Erro ao adicionar: " + error.message);
           }}
           onAddCategory={async (c) => {
-            const newId = Math.random().toString(36).substr(2, 5);
-            const n = { id: newId, name: c.name };
-            if (isConfigured) {
-              const { error } = await supabase.from('categories').insert(n);
-              if (error) { alert("Erro: " + error.message); return; }
-            }
-            setCategories(prev => [...prev, n]);
+            const n = { id: Math.random().toString(36).substr(2, 5), name: c.name };
+            const { error } = await supabase.from('categories').insert(n);
+            if (!error) setCategories(prev => [...prev, n]);
+            else alert("Erro ao adicionar categoria: " + error.message);
           }}
           onUpdateCategory={async (c) => {
-             if (isConfigured) {
-               const { error } = await supabase.from('categories').update({name: c.name}).eq('id', c.id);
-               if (error) { alert("Erro: " + error.message); return; }
-             }
-             setCategories(prev => prev.map(item => item.id === c.id ? c : item));
+             const { error } = await supabase.from('categories').update({ name: c.name }).eq('id', c.id);
+             if (!error) setCategories(prev => prev.map(item => item.id === c.id ? c : item));
           }}
           onDeleteCategory={async (id) => {
-            if (isConfigured) {
-              const { error } = await supabase.from('categories').delete().eq('id', id);
-              if (error) { alert("Erro: " + error.message); return; }
-            }
-            setCategories(prev => prev.filter(c => c.id !== id));
+            const { error } = await supabase.from('categories').delete().eq('id', id);
+            if (!error) setCategories(prev => prev.filter(c => c.id !== id));
+            else alert("Erro ao excluir categoria: " + error.message);
           }}
           onAddSubcategory={async (sub) => {
-            const newId = Math.random().toString(36).substr(2, 5);
-            const n = { id: newId, ...sub };
-            if (isConfigured) {
-              const { error } = await supabase.from('subcategories').insert(n);
-              if (error) { alert("Erro: " + error.message); return; }
-            }
-            setSubcategories(prev => [...prev, n]);
+            const n = { id: Math.random().toString(36).substr(2, 5), ...sub };
+            const { error } = await supabase.from('subcategories').insert(n);
+            if (!error) setSubcategories(prev => [...prev, n]);
+            else alert("Erro ao adicionar subcategoria: " + error.message);
           }}
           onUpdateSubcategory={async (s) => {
-             if (isConfigured) {
-               const { error } = await supabase.from('subcategories').update(s).eq('id', s.id);
-               if (error) { alert("Erro: " + error.message); return; }
-             }
-             setSubcategories(prev => prev.map(item => item.id === s.id ? s : item));
+             const { error } = await supabase.from('subcategories').update({ name: s.name, categoryId: s.categoryId }).eq('id', s.id);
+             if (!error) setSubcategories(prev => prev.map(item => item.id === s.id ? s : item));
           }}
           onDeleteSubcategory={async (id) => {
-            if (isConfigured) {
-              const { error } = await supabase.from('subcategories').delete().eq('id', id);
-              if (error) { alert("Erro: " + error.message); return; }
-            }
-            setSubcategories(prev => prev.filter(s => s.id !== id));
+            const { error } = await supabase.from('subcategories').delete().eq('id', id);
+            if (!error) setSubcategories(prev => prev.filter(s => s.id !== id));
+            else alert("Erro ao excluir subcategoria: " + error.message);
           }}
           onAddPartner={async (p) => {
-            const newId = Math.random().toString(36).substr(2, 5);
-            const n = { ...p, id: newId };
-            if (isConfigured) {
-              const { error } = await supabase.from('partners').insert(n);
-              if (error) { alert("Erro: " + error.message); return; }
-            }
-            setPartners(prev => [...prev, n]);
+            const n = { ...p, id: Math.random().toString(36).substr(2, 5) };
+            const { error } = await supabase.from('partners').insert(n);
+            if (!error) setPartners(prev => [...prev, n]);
+            else alert("Erro ao adicionar parceiro: " + error.message);
           }}
           onDeletePartner={async (id) => {
-            if (isConfigured) {
-              const { error } = await supabase.from('partners').delete().eq('id', id);
-              if (error) { alert("Erro: " + error.message); return; }
-            }
-            setPartners(prev => prev.filter(p => p.id !== id));
+            const { error } = await supabase.from('partners').delete().eq('id', id);
+            if (!error) setPartners(prev => prev.filter(p => p.id !== id));
+            else alert("Erro ao excluir parceiro: " + error.message);
           }}
           onAddProject={async (p) => {
-            const newId = Math.random().toString(36).substr(2, 5);
-            const n = { ...p, id: newId, created_at: new Date() };
-            if (isConfigured) {
-              const { error } = await supabase.from('projects').insert(n);
-              if (error) { alert("Erro: " + error.message); return; }
-            }
-            setProjects(prev => [n, ...prev]);
+            const n = { ...p, id: Math.random().toString(36).substr(2, 9), created_at: new Date() };
+            const { error } = await supabase.from('projects').insert(n);
+            if (!error) setProjects(prev => [n, ...prev]);
+            else alert("Erro ao adicionar projeto: " + error.message);
           }}
           onUpdateProject={async (p) => {
-             if (isConfigured) {
-               const { error } = await supabase.from('projects').update(p).eq('id', p.id);
-               if (error) { alert("Erro: " + error.message); return; }
-             }
-             setProjects(prev => prev.map(item => item.id === p.id ? p : item));
+            const { error } = await supabase.from('projects').update(p).eq('id', p.id);
+            if (!error) setProjects(prev => prev.map(item => item.id === p.id ? p : item));
+            else alert("Erro ao atualizar projeto: " + error.message);
           }}
           onDeleteProject={async (id) => {
-            if (isConfigured) {
-              const { error } = await supabase.from('projects').delete().eq('id', id);
-              if (error) { alert("Erro: " + error.message); return; }
-            }
-            setProjects(prev => prev.filter(p => p.id !== id));
+            const { error } = await supabase.from('projects').delete().eq('id', id);
+            if (!error) setProjects(prev => prev.filter(p => p.id !== id));
+            else alert("Erro ao excluir projeto: " + error.message);
           }}
-          onAddBanner={async (url) => {
-            if (isConfigured) {
-              const { error } = await supabase.from('banners').insert({ image: url });
-              if (error) { alert("Erro: " + error.message); return; }
-            }
-            setBanners(prev => [...prev, url]);
+          onAddBanner={async (u) => {
+            const { error } = await supabase.from('banners').insert({ image: u });
+            if (!error) setBanners(prev => [...prev, u]);
+            else alert("Erro ao adicionar banner: " + error.message);
           }}
-          onDeleteBanner={async (url) => {
-            if (isConfigured) {
-              const { error } = await supabase.from('banners').delete().eq('image', url);
-              if (error) { alert("Erro: " + error.message); return; }
-            }
-            setBanners(prev => prev.filter(b => b !== url));
+          onDeleteBanner={async (u) => {
+            const { error } = await supabase.from('banners').delete().eq('image', u);
+            if (!error) setBanners(prev => prev.filter(b => b !== u));
+            else alert("Erro ao excluir banner: " + error.message);
           }}
           onUpdateSettings={handleUpdateSettings}
           onLogout={() => setIsAdmin(false)} 
         />
+      )}
+
+      {/* Botão Flutuante da IA */}
+      {!isAdmin && (
+        <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+          {isAIChatOpen && (
+            <div className="mb-4 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col animate-fade-in">
+              <div className="bg-pindorama-green p-4 text-white flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <Bot size={20} className="text-amber-500" />
+                  <span className="font-bold text-sm">Consultor Pindorama</span>
+                </div>
+                <button onClick={() => setIsAIChatOpen(false)} className="hover:bg-white/10 p-1 rounded-full transition-colors">
+                  <X size={20} />
+                </button>
+              </div>
+              
+              <div className="flex-1 h-80 overflow-y-auto p-4 space-y-4 bg-stone-50">
+                {aiMessages.map((msg, idx) => (
+                  <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[80%] p-3 rounded-2xl text-sm ${
+                      msg.role === 'user' 
+                        ? 'bg-pindorama-green text-white rounded-tr-none' 
+                        : 'bg-white text-stone-800 border border-stone-200 rounded-tl-none shadow-sm'
+                    }`}>
+                      {msg.text}
+                    </div>
+                  </div>
+                ))}
+                {isAiTyping && (
+                  <div className="flex justify-start">
+                    <div className="bg-white text-stone-400 border border-stone-200 p-3 rounded-2xl rounded-tl-none text-xs italic animate-pulse">
+                      Digitando...
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="p-4 border-t border-stone-100 bg-white flex gap-2">
+                <input 
+                  type="text" 
+                  value={aiInput}
+                  onChange={(e) => setAiInput(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleAISend()}
+                  placeholder="Tire sua dúvida sobre madeiras..."
+                  className="flex-1 bg-stone-100 border-none rounded-full px-4 py-2 text-sm focus:ring-2 focus:ring-pindorama-green outline-none"
+                />
+                <button 
+                  onClick={handleAISend}
+                  disabled={isAiTyping || !aiInput.trim()}
+                  className="bg-pindorama-green text-white p-2 rounded-full hover:bg-opacity-90 disabled:opacity-50 transition-all"
+                >
+                  <Send size={18} />
+                </button>
+              </div>
+            </div>
+          )}
+          
+          <button 
+            onClick={() => setIsAIChatOpen(!isAIChatOpen)}
+            className="bg-pindorama-green text-white p-4 rounded-full shadow-xl hover:scale-110 transition-transform flex items-center gap-2 group"
+          >
+            <MessageSquare size={24} />
+            {!isAIChatOpen && <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-500 whitespace-nowrap text-sm font-bold">Dúvida Técnica?</span>}
+          </button>
+        </div>
       )}
     </div>
   );
