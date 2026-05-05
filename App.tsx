@@ -29,7 +29,7 @@ const App: React.FC = () => {
   
   const [isAIChatOpen, setIsAIChatOpen] = useState(false);
   const [aiMessages, setAiMessages] = useState<{ role: 'user' | 'model', text: string }[]>([
-    { role: 'model', text: 'Olá! Sou o assistente virtual da Madeireira Pindorama. Como posso ajudar você hoje?' }
+    { role: 'model', text: 'Olá! Sou o assistente virtual da MADEIRAS BRASIL. Como posso ajudar você hoje?' }
   ]);
   const [aiInput, setAiInput] = useState('');
   const [isAiTyping, setIsAiTyping] = useState(false);
@@ -43,17 +43,17 @@ const App: React.FC = () => {
     setIsAiTyping(true);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
       
       const response = await ai.models.generateContent({
         model: "gemini-3-flash-preview",
         contents: userMsg,
         config: {
-          systemInstruction: `Você é o consultor virtual especializado da Madeireira Pindorama, a mais tradicional de Uberaba-MG.
+          systemInstruction: `Você é o consultor virtual especializado da MADEIRAS BRASIL, a mais tradicional de Uberaba-MG.
           Seu objetivo é ajudar clientes com dúvidas sobre madeiras (Paraju, Angelim, Cedrinho, etc), telhados, decks, pergolados e forros.
           
           Informações da Empresa:
-          - Nome: Madeireira Pindorama
+          - Nome: MADEIRAS BRASIL
           - Localização: Uberaba, MG
           - Especialidade: Madeiras brutas e aparelhadas, ferragens e telhas.
           - Tom de voz: Profissional, prestativo e conhecedor técnico.
@@ -85,15 +85,15 @@ const App: React.FC = () => {
   };
 
   const [settings, setSettings] = useState<SiteSettings>({
-    siteName: 'Madeireira Pindorama',
+    siteName: 'MADEIRAS BRASIL',
     phone: '(34) 3333-3333',
     whatsapp: '5534999999999',
-    email: 'contato@madeireirapindorama.com.br',
+    email: 'contato@madeirasbrasil.com.br',
     address: 'Av. Guilherme Ferreira, Uberaba - MG',
     hoursWeek: '08:00 - 18:00',
     hoursSat: '08:00 - 12:00',
-    instagram: 'https://instagram.com/madeireirapindorama',
-    facebook: 'https://facebook.com/madeireirapindorama',
+    instagram: 'https://instagram.com/madeirasbrasil',
+    facebook: 'https://facebook.com/madeirasbrasil',
     pixelId: '',
     googleTag: '',
     aboutTitle: 'A Tradição que Solidifica Uberaba.',
@@ -125,19 +125,19 @@ const App: React.FC = () => {
         const { data: settData } = await supabase.from('settings').select('*').single();
         if (settData) setSettings(prev => ({ ...prev, ...settData }));
         
-        const { data: pData } = await supabase.from('products').select('*').order('created_at', { ascending: false });
+        const { data: pData } = await supabase.from('products').select('*');
         if (pData) setProducts(pData);
         
-        const { data: cData } = await supabase.from('categories').select('*').order('name');
+        const { data: cData } = await supabase.from('categories').select('*');
         if (cData) setCategories(cData);
 
-        const { data: subData } = await supabase.from('subcategories').select('*').order('name');
+        const { data: subData } = await supabase.from('subcategories').select('*');
         if (subData) setSubcategories(subData);
         
         const { data: prtData } = await supabase.from('partners').select('*');
         if (prtData) setPartners(prtData);
 
-        const { data: projData } = await supabase.from('projects').select('*').order('created_at', { ascending: false });
+        const { data: projData } = await supabase.from('projects').select('*');
         if (projData) setProjects(projData);
 
         const { data: bnrData } = await supabase.from('banners').select('*');
@@ -147,7 +147,8 @@ const App: React.FC = () => {
       await Promise.race([fetchDataWithTimeout(), timeout(5000)]);
       
     } catch (err: any) {
-      console.error('Sincronização falhou, usando dados locais:', err.message);
+      console.error('Sincronização falhou, detalhes do erro:', err);
+      alert('Erro ao carregar dados do banco: ' + (err.message || 'Erro desconhecido'));
       setProducts(PRODUCTS);
       setCategories(CATEGORIES.filter(c => c.id !== 'all'));
       setPartners(PARTNERS);
@@ -221,16 +222,22 @@ const App: React.FC = () => {
             else alert("Erro ao atualizar: " + error.message);
           }}
           onAddProduct={async (p) => {
-            const n = { ...p, id: Math.random().toString(36).substr(2, 9), created_at: new Date() };
-            const { error } = await supabase.from('products').insert(n);
-            if (!error) setProducts(prev => [n, ...prev]);
-            else alert("Erro ao adicionar: " + error.message);
+            const { data, error } = await supabase.from('products').insert(p).select().single();
+            if (!error && data) {
+              setProducts(prev => [data, ...prev]);
+            } else {
+              console.error("Erro detalhado Supabase:", error);
+              alert("Erro ao adicionar produto: " + (error?.message || "Erro desconhecido"));
+            }
           }}
           onAddCategory={async (c) => {
-            const n = { id: Math.random().toString(36).substr(2, 5), name: c.name };
-            const { error } = await supabase.from('categories').insert(n);
-            if (!error) setCategories(prev => [...prev, n]);
-            else alert("Erro ao adicionar categoria: " + error.message);
+            const { data, error } = await supabase.from('categories').insert({ name: c.name }).select().single();
+            if (!error && data) {
+              setCategories(prev => [...prev, data]);
+            } else {
+              console.error("Erro detalhado Supabase:", error);
+              alert("Erro ao adicionar categoria: " + (error?.message || "Erro desconhecido") + (error?.details ? " - " + error.details : ""));
+            }
           }}
           onUpdateCategory={async (c) => {
              const { error } = await supabase.from('categories').update({ name: c.name }).eq('id', c.id);
@@ -242,10 +249,13 @@ const App: React.FC = () => {
             else alert("Erro ao excluir categoria: " + error.message);
           }}
           onAddSubcategory={async (sub) => {
-            const n = { id: Math.random().toString(36).substr(2, 5), ...sub };
-            const { error } = await supabase.from('subcategories').insert(n);
-            if (!error) setSubcategories(prev => [...prev, n]);
-            else alert("Erro ao adicionar subcategoria: " + error.message);
+            const { data, error } = await supabase.from('subcategories').insert(sub).select().single();
+            if (!error && data) {
+              setSubcategories(prev => [...prev, data]);
+            } else {
+              console.error("Erro detalhado Supabase:", error);
+              alert("Erro ao adicionar subcategoria: " + (error?.message || "Erro desconhecido"));
+            }
           }}
           onUpdateSubcategory={async (s) => {
              const { error } = await supabase.from('subcategories').update({ name: s.name, categoryId: s.categoryId }).eq('id', s.id);
@@ -257,9 +267,8 @@ const App: React.FC = () => {
             else alert("Erro ao excluir subcategoria: " + error.message);
           }}
           onAddPartner={async (p) => {
-            const n = { ...p, id: Math.random().toString(36).substr(2, 5) };
-            const { error } = await supabase.from('partners').insert(n);
-            if (!error) setPartners(prev => [...prev, n]);
+            const { data, error } = await supabase.from('partners').insert(p).select().single();
+            if (!error && data) setPartners(prev => [...prev, data]);
             else alert("Erro ao adicionar parceiro: " + error.message);
           }}
           onDeletePartner={async (id) => {
@@ -268,9 +277,8 @@ const App: React.FC = () => {
             else alert("Erro ao excluir parceiro: " + error.message);
           }}
           onAddProject={async (p) => {
-            const n = { ...p, id: Math.random().toString(36).substr(2, 9), created_at: new Date() };
-            const { error } = await supabase.from('projects').insert(n);
-            if (!error) setProjects(prev => [n, ...prev]);
+            const { data, error } = await supabase.from('projects').insert(p).select().single();
+            if (!error && data) setProjects(prev => [data, ...prev]);
             else alert("Erro ao adicionar projeto: " + error.message);
           }}
           onUpdateProject={async (p) => {
@@ -306,7 +314,7 @@ const App: React.FC = () => {
               <div className="bg-pindorama-green p-4 text-white flex justify-between items-center">
                 <div className="flex items-center gap-2">
                   <Bot size={20} className="text-amber-500" />
-                  <span className="font-bold text-sm">Consultor Pindorama</span>
+                  <span className="font-bold text-sm">Consultor MADEIRAS BRASIL</span>
                 </div>
                 <button onClick={() => setIsAIChatOpen(false)} className="hover:bg-white/10 p-1 rounded-full transition-colors">
                   <X size={20} />

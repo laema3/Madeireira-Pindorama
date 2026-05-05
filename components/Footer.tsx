@@ -20,12 +20,12 @@ const Footer: React.FC<FooterProps> = ({ settings }) => {
               ) : (
                 <div className="flex items-center gap-3">
                   <ShieldCheck className="text-amber-600 w-10 h-10" />
-                  <span className="text-2xl font-black tracking-tighter uppercase">PINDORAMA</span>
+                  <span className="text-2xl font-black tracking-tighter uppercase">MADEIRAS BRASIL</span>
                 </div>
               )}
             </div>
             <p className="text-stone-400 leading-relaxed font-medium italic text-sm">
-              Tradição que solidifica Uberaba e o Triângulo Mineiro. Mais de 45 anos de compromisso com a qualidade.
+              Tradição que solidifica Uberaba e o Triângulo Mineiro. Qualidade e compromisso.
             </p>
             <div className="flex space-x-3">
               {settings.instagram && (
@@ -103,7 +103,7 @@ const Footer: React.FC<FooterProps> = ({ settings }) => {
         </div>
 
         <div className="border-t border-white/5 pt-12 text-center">
-          <p className="text-stone-600 text-[10px] font-black uppercase tracking-widest italic">© {new Date().getFullYear()} Madeireira Pindorama • Uberaba - MG</p>
+          <p className="text-stone-600 text-[10px] font-black uppercase tracking-widest italic">© {new Date().getFullYear()} MADEIRAS BRASIL • Uberaba - MG</p>
         </div>
       </div>
     </footer>

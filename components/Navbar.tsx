@@ -22,7 +22,6 @@ const Navbar: React.FC<NavbarProps> = ({ onAdminClick, onHomeClick, onNavLinkCli
   }, []);
 
   const navLinks = [
-    { name: 'Início', href: '#inicio', icon: <Home size={18} /> },
     { name: 'Empresa', href: '#empresa', icon: <Info size={18} /> },
     { name: 'Parceiros', href: '#parceiros', icon: <Handshake size={18} /> },
     { name: 'Produtos', href: '#produtos', icon: <Package size={18} /> },
@@ -54,7 +53,7 @@ const Navbar: React.FC<NavbarProps> = ({ onAdminClick, onHomeClick, onNavLinkCli
               )}
             </div>
             <div>
-              <span className="text-white text-xl md:text-2xl font-bold tracking-tight block leading-none">PINDORAMA</span>
+              <span className="text-white text-xl md:text-2xl font-bold tracking-tight block leading-none">MADEIRAS BRASIL</span>
               <span className="text-amber-400 text-[10px] font-semibold tracking-[0.2em] uppercase">Madeireira • Uberaba</span>
             </div>
           </div>

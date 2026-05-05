@@ -52,6 +52,10 @@ const AdminPanel: React.FC<AdminPanelProps> = (props) => {
   const [loginError, setLoginError] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   
+  useEffect(() => {
+    setLocalSettings(props.settings);
+  }, [props.settings]);
+
   const [newCatName, setNewCatName] = useState('');
   const [newSub, setNewSub] = useState({ name: '', categoryId: '' });
   const [newPartner, setNewPartner] = useState({ name: '', logo: '' });

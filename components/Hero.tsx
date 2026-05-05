@@ -33,7 +33,7 @@ const Hero: React.FC<HeroProps> = ({ images, settings }) => {
         >
           {/* A classe hero-overlay agora é mais transparente no centro */}
           <div className="absolute inset-0 hero-overlay z-10" />
-          <img src={img} alt="Pindorama Background" className="w-full h-full object-cover" />
+          <img src={img} alt="MADEIRAS BRASIL Background" className="w-full h-full object-cover" />
         </div>
       ))}
 
@@ -41,7 +41,7 @@ const Hero: React.FC<HeroProps> = ({ images, settings }) => {
         <div className="max-w-5xl">
           <div className="inline-flex items-center gap-2 bg-black/40 backdrop-blur-md border border-white/20 text-amber-400 px-8 py-3 rounded-full mb-8 animate-fade-in">
             <Award className="w-5 h-5" />
-            <span className="text-sm font-black uppercase tracking-[0.3em]">Qualidade Pindorama desde 1979</span>
+            <span className="text-sm font-black uppercase tracking-[0.3em]">Qualidade MADEIRAS BRASIL</span>
           </div>
           
           <h1 className="text-white text-6xl md:text-9xl font-black mb-8 leading-tight uppercase tracking-tighter drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)]">
